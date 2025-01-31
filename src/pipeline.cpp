@@ -1,4 +1,5 @@
 #include "pipeline.hpp"
+#include "model.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -60,13 +61,18 @@ void Pipeline::createGraphicsPipeline(const std::string &vertPath,
 	shaderStages[1].pSpecializationInfo = nullptr;
 
 	/* Vertex input configuration */
+	auto bindingDescription = Model::Vertex::getBindingDescriptions();
+	auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType =
 		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr;
+	vertexInputInfo.vertexAttributeDescriptionCount =
+		static_cast<uint32_t>(attributeDescriptions.size());
+	vertexInputInfo.vertexBindingDescriptionCount =
+		static_cast<uint32_t>(bindingDescription.size());
+	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
 
 	/* Viewport and Scissor configuration */
 	VkPipelineViewportStateCreateInfo viewportInfo{};

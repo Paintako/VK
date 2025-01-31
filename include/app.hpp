@@ -1,6 +1,7 @@
 #pragma once
 
 #include "devices.hpp"
+#include "model.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
 #include "window.hpp"
@@ -23,6 +24,7 @@ public:
 
 private:
 	/* Helper functions */
+	void loadModel();
 	void createPipelineLayout();
 	void createPipeline();
 	void createCommandBuffers();
@@ -41,5 +43,6 @@ private:
 		pipeline;  // Unique pointer to pipeline, to avoid memory leaks
 	VkPipelineLayout pipelineLayout;
 	std::vector<VkCommandBuffer> commandBuffers;
+	std::unique_ptr<Model> model;
 };
 }  // namespace vk

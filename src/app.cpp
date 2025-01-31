@@ -3,6 +3,7 @@
 // std
 #include <array>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 
 namespace vk {
@@ -11,6 +12,7 @@ App::App()
 	  HEIGHT(600),
 	  title("Vulkan Application"),
 	  window(WIDTH, HEIGHT, title) {
+	loadModel();
 	createPipelineLayout();
 	createPipeline();
 	createCommandBuffers();
@@ -116,8 +118,8 @@ void App::createCommandBuffers() {
 							 VK_SUBPASS_CONTENTS_INLINE);
 
 		pipeline->bind(commandBuffers[i]);
-
-		vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+		model->bind(commandBuffers[i]);
+		model->draw(commandBuffers[i]);
 
 		vkCmdEndRenderPass(commandBuffers[i]);
 
@@ -141,4 +143,31 @@ void App::drawFrame() {
 		throw std::runtime_error("failed to submit command buffer!");
 	}
 };
+
+
+void App::loadModel() {
+	// Load model data
+	// Random vertices for now
+	std::vector<Model::Vertex> vertices = {
+		{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	};
+	// std::vector<Model::Vertex> vertices{};
+
+	// std::random_device rd;
+	// std::mt19937 gen(rd());
+	// std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
+
+	// for (size_t i = 0; i < 3; i++) {
+	// 	for (size_t j = 0; j < 3; j++) {
+	// 		float x = dist(gen);
+	// 		float y = dist(gen);
+	// 		vertices.push_back({{x, y}});
+	// 		std::cout << x << ", " << y << std::endl;
+	// 	}
+	// }
+
+	model = std::make_unique<Model>(devices, vertices);
+}
 }  // namespace vk
