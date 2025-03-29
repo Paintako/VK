@@ -1,14 +1,14 @@
 #pragma once
 
-#include "devices.hpp"
-#include "model.hpp"
-#include "pipeline.hpp"
-#include "swap_chain.hpp"
-#include "window.hpp"
+#include <iostream>
+#include <stdexcept>
 
-// std
-#include <memory>
-#include <vector>
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.hpp>
+
+#include "Vulkan_instance.hpp"
+#include "Vulkan_device.hpp"
+#include "window.hpp"
 
 namespace vk {
 class App {
@@ -16,33 +16,18 @@ public:
 	App();
 	~App();
 
-	// Not copyable or movable
 	App(const App &) = delete;
-	void operator=(const App &) = delete;
+	App &operator=(const App &) = delete;
 
 	void run();
 
 private:
-	/* Helper functions */
-	void loadModel();
-	void createPipelineLayout();
-	void createPipeline();
-	void createCommandBuffers();
-	void drawFrame();
+	void initVulkan();
+	void mainLoop();
+	void cleanup();
 
-	/* Variables & attributes */
-	const int WIDTH = 800;
-	const int HEIGHT = 600;
-	std::string title = "Vulkan Application";
-
-	/* Vulkan Objects */
-	Window window{WIDTH, HEIGHT, title};
-	Device devices{window};
-	SwapChain swapChain{devices, window.getExtent()};
-	std::unique_ptr<Pipeline>
-		pipeline;  // Unique pointer to pipeline, to avoid memory leaks
-	VkPipelineLayout pipelineLayout;
-	std::vector<VkCommandBuffer> commandBuffers;
-	std::unique_ptr<Model> model;
+	// Vulkan instance
+	GLFWwindow *window;
+	VkInstance instance;
 };
 }  // namespace vk

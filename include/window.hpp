@@ -1,39 +1,26 @@
 #pragma once
 
-/* Standard library */
-#include <string>
-
-/* GLFW for surface window*/
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+
+#include <iostream>
+#include <stdexcept>
 
 namespace vk {
 class Window {
 public:
-	Window(int w, int h, std::string title);
+	Window();
 	~Window();
 
-	/* Determines whether the surface should be cloese*/
-	bool shouldClose();
+	Window(const Window &) = delete;
+	Window &operator=(const Window &) = delete;
 
-	/* Creates a window surface, which connects to Vkinstance */
-	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+	void createWindow();
+	void destroyWindow();
 
-	/* Get extension from swap chain */
-	VkExtent2D getExtent() { return {WIDTH, HEIGHT}; }
+	GLFWwindow *getWindow() const { return window; }
 
 private:
-	/* Variables & attributes */
-	GLFWwindow *window;
-
-	const uint32_t WIDTH;
-	const uint32_t HEIGHT;
-
-	std::string windowTitle;
-
-
-	/* Functions */
-	void initWindow();
+	GLFWwindow *window = nullptr;
 };
 }  // namespace vk
