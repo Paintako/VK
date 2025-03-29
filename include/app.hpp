@@ -6,8 +6,8 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
-#include "Vulkan_instance.hpp"
-#include "Vulkan_device.hpp"
+#include "vk_Device.hpp"
+#include "vk_Instance.hpp"
 #include "window.hpp"
 
 namespace vk {
@@ -29,5 +29,6 @@ private:
 	// Vulkan instance
 	GLFWwindow *window;
 	VkInstance instance;
+	VkDevice logicalDevice;
 };
 }  // namespace vk

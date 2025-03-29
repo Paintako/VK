@@ -8,7 +8,8 @@ vk::App::App() {
 vk::App::~App() {
 	// Destructor implementation
 	std::cout << "App destructor called" << std::endl;
-	// cleanup();
+	cleanup();
+	std::cout << "App destructor finished" << std::endl;
 }
 void vk::App::run() {
 	initVulkan();
@@ -18,8 +19,9 @@ void vk::App::run() {
 void vk::App::initVulkan() {
 	// Vulkan initialization code
 	window = Window().getWindow();
-	instance = Vulkan_Instance().getInstance();
-	Vulkan_Device(instance).pickPhysicalDevice();
+	instance = vk_Instance().getInstance();
+	logicalDevice = vk_Device(instance).getLogicalDevice();
+	std::cout << "Vulkan initialized!" << std::endl;
 }
 void vk::App::mainLoop() {
 	// Main loop code
@@ -28,5 +30,12 @@ void vk::App::mainLoop() {
 	}
 }
 void vk::App::cleanup() {
-	// Cleanup code
+	vkDestroyDevice(logicalDevice, nullptr);
+
+	// vkDestroySurfaceKHR(instance, surface, nullptr);
+	vkDestroyInstance(instance, nullptr);
+
+	glfwDestroyWindow(window);
+
+	glfwTerminate();
 }
