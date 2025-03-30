@@ -6,10 +6,12 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+#include "window.hpp"
+
 namespace vk {
 class vk_Instance {
 public:
-	vk_Instance();
+	vk_Instance(Window &window);
 	~vk_Instance() = default;
 
 	vk_Instance(const vk_Instance &) = delete;
@@ -18,9 +20,13 @@ public:
 	void createInstance();
 	void destroyInstance();
 
-	VkInstance getInstance() const { return instance; }
+	// Return a reference to the Vulkan instance
+	VkInstance &getInstance() { return instance; }
+	VkSurfaceKHR &getSurface() { return surface; }
 
 private:
-	VkInstance instance = nullptr;
+	Window &window;
+	VkSurfaceKHR surface;
+	VkInstance instance;
 };
 }  // namespace vk

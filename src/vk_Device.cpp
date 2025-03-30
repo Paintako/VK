@@ -1,8 +1,10 @@
 #include "vk_Device.hpp"
 
 namespace vk {
-vk_Device::vk_Device(VkInstance instance) : instance(instance) {
+vk_Device::vk_Device(VkInstance &instance, VkSurfaceKHR &surface)
+	: instance{instance}, surface{surface} {
 	std::cout << "Creating Vulkan Device..." << std::endl;
+	std::cout << "Instance: " << instance << std::endl;
 	pickPhysicalDevice();
 	createLogicalDevice();
 	std::cout << "Vulkan Device created!" << std::endl;
@@ -52,10 +54,17 @@ QueueFamilyIndices vk_Device::findQueueFamilies(VkPhysicalDevice device) {
 											 queueFamilies.data());
 
 	int i = 0;
-	// Find a queue family that supports graphics operations
 	for (const auto &queueFamily : queueFamilies) {
 		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 			indices.graphicsFamily = i;
+		}
+
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
+											 &presentSupport);
+
+		if (presentSupport) {
+			indices.presentFamily = i;
 		}
 
 		if (indices.isComplete()) {
@@ -71,21 +80,33 @@ QueueFamilyIndices vk_Device::findQueueFamilies(VkPhysicalDevice device) {
 void vk_Device::createLogicalDevice() {
 	QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-	VkDeviceQueueCreateInfo queueCreateInfo{};
-	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-	queueCreateInfo.queueCount = 1;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+	std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
+											  indices.presentFamily.value()};
 
 	float queuePriority = 1.0f;
-	queueCreateInfo.pQueuePriorities = &queuePriority;
+	for (uint32_t queueFamily : uniqueQueueFamilies) {
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFamily;
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+		queueCreateInfos.push_back(queueCreateInfo);
+	}
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
 
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = &queueCreateInfo;
-	createInfo.queueCreateInfoCount = 1;
+
+	createInfo.queueCreateInfoCount =
+		static_cast<uint32_t>(queueCreateInfos.size());
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
 	createInfo.pEnabledFeatures = &deviceFeatures;
+
+	createInfo.enabledExtensionCount = 0;
+	createInfo.enabledLayerCount = 0;
 
 	if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &logicalDevice) !=
 		VK_SUCCESS) {
@@ -94,5 +115,7 @@ void vk_Device::createLogicalDevice() {
 
 	vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0,
 					 &graphicsQueue);
+	vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0,
+					 &presentQueue);
 }
 }  // namespace vk

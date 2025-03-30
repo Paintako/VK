@@ -18,24 +18,21 @@ void vk::App::run() {
 }
 void vk::App::initVulkan() {
 	// Vulkan initialization code
-	window = Window().getWindow();
-	instance = vk_Instance().getInstance();
-	logicalDevice = vk_Device(instance).getLogicalDevice();
 	std::cout << "Vulkan initialized!" << std::endl;
 }
 void vk::App::mainLoop() {
 	// Main loop code
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window.getWindow())) {
 		glfwPollEvents();
 	}
 }
 void vk::App::cleanup() {
-	vkDestroyDevice(logicalDevice, nullptr);
+	// vkDestroyDevice(logicalDevice, nullptr);
 
-	// vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	// // vkDestroySurfaceKHR(instance, surface, nullptr);
+	// vkDestroyInstance(instance, nullptr);
 
-	glfwDestroyWindow(window);
+	// glfwDestroyWindow(window);
 
 	glfwTerminate();
 }

@@ -20,6 +20,8 @@ public:
 
 	GLFWwindow *getWindow() const { return window; }
 
+	void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+
 private:
 	GLFWwindow *window = nullptr;
 };

@@ -26,9 +26,9 @@ private:
 	void mainLoop();
 	void cleanup();
 
-	// Vulkan instance
-	GLFWwindow *window;
-	VkInstance instance;
-	VkDevice logicalDevice;
+	// Class members
+	Window window;
+	vk_Instance instance{window};
+	vk_Device device{instance.getInstance(), instance.getSurface()};
 };
 }  // namespace vk

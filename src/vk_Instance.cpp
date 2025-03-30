@@ -1,10 +1,24 @@
 #include "vk_Instance.hpp"
 
 namespace vk {
-vk_Instance::vk_Instance() {
+vk_Instance::vk_Instance(Window &window) : window(window) {
 	std::cout << "Creating Vulkan vk_Instance..." << std::endl;
 	createInstance();
+	// Create window surface
+	window.createWindowSurface(instance, &surface);
 	std::cout << "Vulkan vk_Instance created!" << std::endl;
+}
+
+// Get required extensions, which are needed for Vulkan to work with GLFW
+// (createSurface)
+std::vector<const char *> getRequiredExtensions() {
+	uint32_t glfwExtensionCount = 0;
+	const char **glfwExtensions;
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+	std::vector<const char *> extensions(glfwExtensions,
+										 glfwExtensions + glfwExtensionCount);
+	return extensions;
 }
 
 void vk_Instance::createInstance() {
@@ -31,9 +45,9 @@ void vk_Instance::createInstance() {
 	   glfwExtensions. glfwExtensions =
 	   glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 	*/
-	createInfo.enabledExtensionCount = glfwExtensionCount;
-	createInfo.ppEnabledExtensionNames = glfwExtensions;
-
+	auto extensions = getRequiredExtensions();
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+	createInfo.ppEnabledExtensionNames = extensions.data();
 	createInfo.enabledLayerCount = 0;
 
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
