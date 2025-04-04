@@ -1,6 +1,6 @@
 # 指定編譯器
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Iinclude
+CXXFLAGS = -std=c++17 -O2 -Iinclude -g
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 # GLSL 編譯器

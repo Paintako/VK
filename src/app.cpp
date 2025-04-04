@@ -27,12 +27,19 @@ void vk::App::mainLoop() {
 	}
 }
 void vk::App::cleanup() {
-	// vkDestroyDevice(logicalDevice, nullptr);
+	vkDestroyDevice(device.getLogicalDevice(), nullptr);
+	std::cout << "Logical device destroyed!" << std::endl;
+	// if (enableValidationLayers) {
+	// 	DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+	// }
 
-	// // vkDestroySurfaceKHR(instance, surface, nullptr);
-	// vkDestroyInstance(instance, nullptr);
-
-	// glfwDestroyWindow(window);
-
+	vkDestroySurfaceKHR(instance.getInstance(), instance.getSurface(), nullptr);
+	std::cout << "Surface destroyed!" << std::endl;
+	vkDestroyInstance(instance.getInstance(), nullptr);
+	std::cout << "Instance destroyed!" << std::endl;
+	glfwDestroyWindow(window.getWindow());
+	std::cout << "Window destroyed!" << std::endl;
 	glfwTerminate();
+	std::cout << "GLFW terminated!" << std::endl;
+	std::cout << "App cleanup finished!" << std::endl;
 }

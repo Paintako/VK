@@ -42,7 +42,8 @@ public:
 	VkDevice &getLogicalDevice() { return logicalDevice; }
 	VkPhysicalDevice &getPhysicalDevice() { return physicalDevice; }
 
-	void pickPhysicalDevice();
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 private:
 	VkSurfaceKHR surface = nullptr;
@@ -59,8 +60,7 @@ private:
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 	/* Helper function */
+	void pickPhysicalDevice();
 	bool isDeviceSuitable(VkPhysicalDevice device);
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 };
 }  // namespace vk

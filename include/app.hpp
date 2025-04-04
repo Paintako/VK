@@ -8,6 +8,7 @@
 
 #include "vk_Device.hpp"
 #include "vk_Instance.hpp"
+#include "vk_SwapChain.hpp"
 #include "window.hpp"
 
 namespace vk {
@@ -30,5 +31,6 @@ private:
 	Window window;
 	vk_Instance instance{window};
 	vk_Device device{instance.getInstance(), instance.getSurface()};
+	vk_SwapChain swapChain{device, instance};
 };
 }  // namespace vk

@@ -23,6 +23,8 @@ public:
 	// Return a reference to the Vulkan instance
 	VkInstance &getInstance() { return instance; }
 	VkSurfaceKHR &getSurface() { return surface; }
+	// Return a reference to the window
+	Window &getWindow_reference() { return window; }
 
 private:
 	Window &window;
