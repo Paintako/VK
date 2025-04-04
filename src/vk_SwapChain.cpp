@@ -12,6 +12,7 @@ vk_SwapChain::vk_SwapChain(vk_Device &device, vk_Instance &instance)
 	physicalDevice = device.getPhysicalDevice();
 	surface = instance.getSurface();
 	createSwapChain();
+	createSwapChainImageViews();
 	std::cout << "Vulkan SwapChain created!" << std::endl;
 }
 
@@ -79,6 +80,36 @@ void vk_SwapChain::createSwapChain() {
 	swapChainExtent = extent;
 }
 
+void vk_SwapChain::createSwapChainImageViews() {
+	swapChainImageViews.resize(swapChainImages.size());
+	std::cout << "Creating " << swapChainImages.size() << " image views..."
+			  << std::endl;
+	for (size_t i = 0; i < swapChainImages.size(); i++) {
+		VkImageViewCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image = swapChainImages[i];
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = swapChainImageFormat;
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.aspectMask =
+			VK_IMAGE_ASPECT_COLOR_BIT;	// Specify color aspect
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;	 // No mipmaps
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(logicalDevice, &createInfo, nullptr,
+							  &swapChainImageViews[i]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image views!");
+		}
+		std::cout << "Created image view " << i << std::endl;
+	}
+}
+
+
 VkSurfaceFormatKHR vk_SwapChain::chooseSwapSurfaceFormat(
 	const std::vector<VkSurfaceFormatKHR> &availableFormats) {
 	for (const auto &availableFormat : availableFormats) {
@@ -126,4 +157,14 @@ VkExtent2D vk_SwapChain::chooseSwapExtent(
 	}
 }
 
+void vk_SwapChain::destroySwapChainImageViews() {
+	for (auto imageView : swapChainImageViews) {
+		vkDestroyImageView(logicalDevice, imageView, nullptr);
+	}
+	swapChainImageViews.clear();
+}
+
+void vk_SwapChain::destroySwapChain() {
+	vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
+}
 }  // namespace vk

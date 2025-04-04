@@ -21,6 +21,7 @@ vkCreateInstance() → vkEnumeratePhysicalDevices() → vkCreateDevice()
 The VkDevice is your main handle and it represents a logical connection - i.e. 'I am running Vulkan on this GPU'. 
 
 ### SwapChain & ImageView
+#### SwapChain
 General purpose of the SwapChain is to **synchronize the presentation of images with the refresh rate of the screen**.
 The SwapChain is essentially a queue of images that are waiting to be presented to the screen.
 1. Check SwapChain support (during physical device selection, some physical device might not support...)
@@ -35,8 +36,12 @@ The SwapChain is essentially a queue of images that are waiting to be presented 
     * Swap extent (resolution of images in swap chain)
         * We could set `imageUsage` bit field specifies what kind of operations 
             we'll use the images in the swap chain for.
-3. Use a vector to handle `VkImage`s which is created via SwapChain creation
+3. Use a vector to handle `VkImage`s which were created via SwapChain creation
 
+#### ImageView
+To use any VkImage, including those in the SwapChain, in the render pipeline we have to create a VkImageView object. 
+An image view is quite literally a view into an image. 
+It describes how to access the image and which part of the image to access, for example if it should be treated as a 2D texture depth texture without any mipmapping levels.
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)

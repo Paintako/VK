@@ -12,6 +12,8 @@ public:
 	vk_SwapChain &operator=(const vk_SwapChain &) = delete;
 
 	void createSwapChain();
+
+	void destroySwapChainImageViews();
 	void destroySwapChain();
 
 	VkSwapchainKHR &getSwapChain() { return swapChain; }
@@ -33,7 +35,6 @@ private:
 	std::vector<VkImage> swapChainImages;
 	std::vector<VkImageView> swapChainImageViews;
 
-	void createSwapChainImages();
 	void createSwapChainImageViews();
 
 	/* Helper functions */

@@ -27,6 +27,11 @@ void vk::App::mainLoop() {
 	}
 }
 void vk::App::cleanup() {
+	swapChain.destroySwapChainImageViews();
+	std::cout << "Swap chain image views destroyed!" << std::endl;
+	swapChain.destroySwapChain();
+	std::cout << "Swap chain destroyed!" << std::endl;
+
 	vkDestroyDevice(device.getLogicalDevice(), nullptr);
 	std::cout << "Logical device destroyed!" << std::endl;
 	// if (enableValidationLayers) {
