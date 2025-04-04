@@ -37,9 +37,35 @@ void vk_Device::pickPhysicalDevice() {
 	}
 }
 
+bool checkDeviceExtensionSupport(
+	VkPhysicalDevice device,
+	const std::vector<const char *> &deviceExtensions) {
+	uint32_t extensionCount;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
+										 nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
+										 availableExtensions.data());
+
+	std::set<std::string> requiredExtensions(deviceExtensions.begin(),
+											 deviceExtensions.end());
+
+	for (const auto &extension : availableExtensions) {
+		requiredExtensions.erase(extension.extensionName);
+	}
+	// check if all required extensions are supported, if not, return false
+	return requiredExtensions.empty();
+}
+
 bool vk_Device::isDeviceSuitable(VkPhysicalDevice device) {
 	QueueFamilyIndices indices = findQueueFamilies(device);
-	return indices.isComplete();
+	bool swapChainAdequate = false;
+	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(
+		device);  // check if this physical device supports swap chain
+	return indices.isComplete() &&
+		   checkDeviceExtensionSupport(device, deviceExtensions) &&
+		   !swapChainSupport.presentModes.empty();
 }
 
 QueueFamilyIndices vk_Device::findQueueFamilies(VkPhysicalDevice device) {
@@ -52,6 +78,11 @@ QueueFamilyIndices vk_Device::findQueueFamilies(VkPhysicalDevice device) {
 	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount,
 											 queueFamilies.data());
+
+	for (int i = 0; i < queueFamilyCount; i++) {
+		std::cout << "Queue family " << i << ": " << queueFamilies[i].queueCount
+				  << " queues" << std::endl;
+	}
 
 	int i = 0;
 	for (const auto &queueFamily : queueFamilies) {
@@ -75,6 +106,36 @@ QueueFamilyIndices vk_Device::findQueueFamilies(VkPhysicalDevice device) {
 	}
 
 	return indices;
+}
+
+vk_Device::SwapChainSupportDetails vk_Device::querySwapChainSupport(
+	VkPhysicalDevice device) {
+	vk_Device::SwapChainSupportDetails details;
+
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface,
+											  &details.capabilities);
+
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
+										 nullptr);
+
+	if (formatCount != 0) {
+		details.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
+											 details.formats.data());
+	}
+
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
+											  &presentModeCount, nullptr);
+
+	if (presentModeCount != 0) {
+		details.presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(
+			device, surface, &presentModeCount, details.presentModes.data());
+	}
+
+	return details;
 }
 
 void vk_Device::createLogicalDevice() {
@@ -105,8 +166,9 @@ void vk_Device::createLogicalDevice() {
 
 	createInfo.pEnabledFeatures = &deviceFeatures;
 
-	createInfo.enabledExtensionCount = 0;
-	createInfo.enabledLayerCount = 0;
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(
+		deviceExtensions.size());  // enable device extensions, e.g., swapchain
+	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 	if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &logicalDevice) !=
 		VK_SUCCESS) {

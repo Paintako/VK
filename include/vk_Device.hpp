@@ -30,10 +30,18 @@ public:
 	vk_Device(const vk_Device &) = delete;
 	vk_Device &operator=(const vk_Device &) = delete;
 
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+
 	void createLogicalDevice();
 	void destroyLogicalDevice();
 
-	VkDevice getLogicalDevice() const { return logicalDevice; }
+	VkDevice &getLogicalDevice() { return logicalDevice; }
+	VkPhysicalDevice &getPhysicalDevice() { return physicalDevice; }
+
 	void pickPhysicalDevice();
 
 private:
@@ -46,8 +54,13 @@ private:
 	VkQueue graphicsQueue = nullptr;
 	VkQueue presentQueue = nullptr;
 
+	/* Device extensions */
+	const std::vector<const char *> deviceExtensions = {
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
 	/* Helper function */
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 };
 }  // namespace vk
