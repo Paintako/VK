@@ -180,4 +180,15 @@ void vk_Device::createLogicalDevice() {
 	vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0,
 					 &presentQueue);
 }
+
+void vk_Device::destroyLogicalDevice() {
+	std::cout << "Destroying logical device..." << std::endl;
+	if (logicalDevice != VK_NULL_HANDLE) {
+		std::cout << "Logical device is not null!" << std::endl;
+		vkDestroyDevice(logicalDevice, nullptr);
+		std::cout << "Logical device destroyed!" << std::endl;
+	}
+	vkDestroyDevice(logicalDevice, nullptr);
+	std::cout << "Logical device destroyed!" << std::endl;
+}
 }  // namespace vk
