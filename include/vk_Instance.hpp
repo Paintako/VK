@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
@@ -30,5 +32,12 @@ private:
 	Window &window;
 	VkSurfaceKHR surface;
 	VkInstance instance;
+
+	/* Extension layers */
+	const std::vector<const char *> validationLayers = {
+		"VK_LAYER_KHRONOS_validation"};
+
+	/* Helper function */
+	bool checkValidationLayerSupport();
 };
 }  // namespace vk

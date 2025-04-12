@@ -3,6 +3,12 @@
 namespace vk {
 vk_Instance::vk_Instance(Window &window) : window(window) {
 	std::cout << "Creating Vulkan vk_Instance..." << std::endl;
+	// Check if validation layers are supported
+	if (!(checkValidationLayerSupport())) {
+		throw std::runtime_error(
+			"validation layers requested, but not "
+			"available!");
+	}
 	createInstance();
 	// Create window surface
 	window.createWindowSurface(instance, &surface);
@@ -48,10 +54,49 @@ void vk_Instance::createInstance() {
 	auto extensions = getRequiredExtensions();
 	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 	createInfo.ppEnabledExtensionNames = extensions.data();
-	createInfo.enabledLayerCount = 0;
+	createInfo.enabledLayerCount =
+		static_cast<uint32_t>(validationLayers.size());
+	createInfo.ppEnabledLayerNames = validationLayers.data();
 
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create vk_Instance!");
 	}
 }
+
+bool vk_Instance::checkValidationLayerSupport() {
+	uint32_t layerCount;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+	if (layerCount == 0) {
+		std::cout << "validation layers requested, but not available!"
+				  << std::endl;
+		return false;
+	}
+	std::cout << "Number of validation layers: " << layerCount << std::endl;
+
+	std::vector<VkLayerProperties> availableLayers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+	for (const auto &layerProperties : availableLayers) {
+		std::cout << "\t" << layerProperties.layerName << std::endl;
+	}
+
+	for (const char *layerName : validationLayers) {
+		bool layerFound = false;
+
+		for (const auto &layerProperties : availableLayers) {
+			if (strcmp(layerName, layerProperties.layerName) == 0) {
+				layerFound = true;
+				std::cout << "\tLayer " << layerName << " found!" << std::endl;
+				break;
+			}
+		}
+
+		if (!layerFound) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 }  // namespace vk

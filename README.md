@@ -43,9 +43,8 @@ To use any VkImage, including those in the SwapChain, in the render pipeline we 
 An image view is quite literally a view into an image. 
 It describes how to access the image and which part of the image to access, for example if it should be treated as a 2D texture depth texture without any mipmapping levels.
 
-### Pipeline & RenderPass
-#### Pipeline
-1. Create shader module
+### Pipeline
+#### 1. Create shader module
 ##### GLSL
 Using `GLSL` to write `shading language`, programs written in it have a `main` function that is invoked for every `object`.
 `GLSL` uses global variables to handle input and output.
@@ -148,6 +147,49 @@ layout(location = 0) out vec4 outColor0; // put outColor0 in framebuffer0 (locat
 layout(location = 1) out vec4 outColor1; // put outColor1 in framebuffer1 (location = 1)
 layout(location = 2) out vec4 outColor2; // put outColor2 in framebuffer2 (location = 2)
 ```
+#### 2. Set Fixed stages
+* Dynamic state
+* Vertex input
+* Input assembly
+* Viewports and scissors
+* Rasterizer
+* Multisampling
+* Color blending
+* Pipeline layout
+* RenderPass
+
+##### Pipeline layout
+You can use `uniform` values in shaders, which are `globals` similar to dynamic state variables that **can be changed at drawing time** to alter(改變) the behavior of your shaders without having to recreate them. 
+They are commonly used to pass the **transformation matrix** to the vertex shader, or to **create texture samplers in the fragment shader**.
+
+These uniform values need to be specified during pipeline creation by creating a VkPipelineLayout object.
+
+##### RenderPass
+We need to tell Vulkan about the framebuffer attachments that will be used while rendering.
+We need to specify 
+* how many color and depth buffers there will be
+* how many samples to use for each of them
+* how their contents should be handled throughout the rendering operations. 
+All of this information is wrapped in a render pass object.
+
+```vulkan
+VkAttachmentDescription colorAttachment{};
+colorAttachment.format = swapChainImageFormat; // specifies the colorAttachmemt format is same as swapChain
+colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+```
+* The `VkAttachmentDescription` should fit the framebuffer format, in the case of swapChain framebuffers, we pass the swapChain format to match it.
+* Textures and framebuffers are represented by `VKImage` with certial `pixel formats`, layouts of diffetent pixels may differ based on what you're trying to do with an image.
+    * The `initialLayout` specifies which layout the image will have before the **render pass begins**. 
+    * The `finalLayout` specifies the layout to automatically transition to when the **render pass finishes**.
+
+##### Subpass
+
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)

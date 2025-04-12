@@ -27,12 +27,23 @@ void vk::App::mainLoop() {
 	}
 }
 void vk::App::cleanup() {
+	std::cout << "Cleaning up..." << std::endl;
+	pipelineLayout.cleanupPipelineLayout();
+	std::cout << "Pipeline layout destroyed!" << std::endl;
+	renderPass.cleanupRenderPass();
+	std::cout << "Render pass destroyed!" << std::endl;
 	swapChain.destroySwapChainImageViews();
 	std::cout << "Swap chain image views destroyed!" << std::endl;
 	swapChain.destroySwapChain();
 	std::cout << "Swap chain destroyed!" << std::endl;
 
-	vkDestroyDevice(device.getLogicalDevice(), nullptr);
+	if (device.getLogicalDevice() != VK_NULL_HANDLE) {
+		std::cout << "Destroying logical device..." << std::endl;
+		device.destroyLogicalDevice();
+		std::cout << "Logical device destroyed!" << std::endl;
+	}
+
+	// device.destroyLogicalDevice();
 	std::cout << "Logical device destroyed!" << std::endl;
 	// if (enableValidationLayers) {
 	// 	DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);

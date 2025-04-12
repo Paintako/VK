@@ -8,12 +8,13 @@ public:
 	vk_GraphicsPipeline(VkDevice &device,
 						VkRenderPass &renderPass,
 						VkPipelineLayout &pipelineLayout);
-	~vk_GraphicsPipeline();
+	~vk_GraphicsPipeline() = default;
 
 	void createGraphicsPipeline(const char *vertShaderPath,
 								const char *fragShaderPath);
 
-	VkPipeline getGraphicsPipeline() { return graphicsPipeline; }
+	VkPipeline &getGraphicsPipeline() { return graphicsPipeline; }
+	void cleanupGraphicsPipeline();
 
 private:
 	/* Helper functions */
@@ -24,17 +25,14 @@ private:
 	void createGraphicsPipeline();
 
 	void cleanupShaderModule(VkShaderModule &shaderModule);
-	void cleanupPipelineLayout();
-	void cleanupRenderPass();
-	void cleanupGraphicsPipeline();
 
 	/* Member variables */
 	VkDevice &device;
 	VkRenderPass &renderPass;
 	VkPipelineLayout &pipelineLayout;
-	VkPipeline graphicsPipeline;
+	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
 	VkShaderModule vertShaderModule;
 	VkShaderModule fragShaderModule;
 };
-} // namespace vk
+}  // namespace vk

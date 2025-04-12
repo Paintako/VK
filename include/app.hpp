@@ -7,7 +7,10 @@
 #include <vulkan/vulkan.hpp>
 
 #include "vk_Device.hpp"
+#include "vk_GraphicsPipeline.hpp"
 #include "vk_Instance.hpp"
+#include "vk_PipelineLayout.hpp"
+#include "vk_RenderPass.hpp"
 #include "vk_SwapChain.hpp"
 #include "window.hpp"
 
@@ -32,5 +35,11 @@ private:
 	vk_Instance instance{window};
 	vk_Device device{instance.getInstance(), instance.getSurface()};
 	vk_SwapChain swapChain{device, instance};
+	vk_PipelineLayout pipelineLayout{device.getLogicalDevice()};
+	vk_RenderPass renderPass{device.getLogicalDevice(),
+							 swapChain.getSwapChainImageFormat()};
+	vk_GraphicsPipeline graphicsPipeline{device.getLogicalDevice(),
+										 renderPass.getRenderPass(),
+										 pipelineLayout.getPipelineLayout()};
 };
 }  // namespace vk
