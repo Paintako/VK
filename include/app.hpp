@@ -7,6 +7,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "vk_Device.hpp"
+#include "vk_FrameBuffer.hpp"
 #include "vk_GraphicsPipeline.hpp"
 #include "vk_Instance.hpp"
 #include "vk_PipelineLayout.hpp"
@@ -41,5 +42,7 @@ private:
 	vk_GraphicsPipeline graphicsPipeline{device.getLogicalDevice(),
 										 renderPass.getRenderPass(),
 										 pipelineLayout.getPipelineLayout()};
+	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
+							   renderPass.getRenderPass(), swapChain};
 };
 }  // namespace vk

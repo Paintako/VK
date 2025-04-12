@@ -190,6 +190,25 @@ colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 ##### Subpass
 
+### Framebuffer
+Framebuffer: A framebuffer object references **all of the VkImageView objects that represent the attachments**. 
+Relation between VkImage, VkImageView, framebuffer, framebuffer attachments.
+
+* VkImage: represents an **image resource** in Vulkan, used for **texture**, **render target**, **depth buffer**.
+* VkImageView: **wrapper around a `VkImage`**, describes how the `VkImage` should be access during rendering. Provides a view of `VkImage` for different usage such as `texture sampling` or `render output`.
+* FrameBuffer: Contains sets of `attachments(附件)`, specified the images to be used in `renderpass`
+* Attahments: Reference to `VkImageview` used in a `framebuffer` during renderpass
+
+* VkImage = 圖片本體，表示實際的 image 資料（也就是 GPU 記憶體中的圖像），例如顏色圖層、深度圖層、texture 等。
+* VkImageView = 看圖方式（你要看哪一層、哪個格式），表示「如何解讀」某個 VkImage。
+* RenderPass = 定義需要幾個 attachment（顏色/深度...）
+* Attachments
+    * 是 RenderPass 規格中所定義的 attachment slot（比如 color0, depth），而在實際使用時，這些 slot 會對應到具體的 VkImageView。
+    * 也就是說：attachment 是一個抽象概念（類似「第0個 color 輸出目標」），實際對應的圖像由 Framebuffer 提供的 ImageView 決定。
+* Framebuffer
+    * 是一個容器，用來把 renderpass 需要的 attachment slots（color, depth 等）「具體綁定」到某些 VkImageView 上。
+    * 就像是在告訴 Vulkan：這個 renderpass 的 color0 用這張圖、depth 用這張圖。
+
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)

@@ -20,6 +20,11 @@ public:
 	VkFormat &getSwapChainImageFormat() { return swapChainImageFormat; }
 	VkExtent2D &getSwapChainExtent() { return swapChainExtent; }
 
+	std::vector<VkImage> &getSwapChainImages() { return swapChainImages; }
+	std::vector<VkImageView> &getSwapChainImageViews() {
+		return swapChainImageViews;
+	}
+
 private:
 	vk_Instance &instance;
 	vk_Device &device;

@@ -28,6 +28,8 @@ void vk::App::mainLoop() {
 }
 void vk::App::cleanup() {
 	std::cout << "Cleaning up..." << std::endl;
+	frameBuffer.cleanupFrameBuffer();
+	std::cout << "Frame buffer destroyed!" << std::endl;
 	pipelineLayout.cleanupPipelineLayout();
 	std::cout << "Pipeline layout destroyed!" << std::endl;
 	renderPass.cleanupRenderPass();

@@ -14,6 +14,9 @@ vk_RenderPass::vk_RenderPass(VkDevice &device, VkFormat swapChainImageFormat)
 }
 
 void vk_RenderPass::createRenderPass() {
+	// What is a attachment?
+	// An attachment is a resource that can be used as an input or output of a
+	// render pass. It can be an image, a buffer, or a depth/stencil buffer.
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapChainImageFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;

@@ -105,7 +105,6 @@ void vk_SwapChain::createSwapChainImageViews() {
 							  &swapChainImageViews[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image views!");
 		}
-		std::cout << "Created image view " << i << std::endl;
 	}
 }
 
@@ -152,7 +151,6 @@ VkExtent2D vk_SwapChain::chooseSwapExtent(
 		actualExtent.height =
 			std::clamp(actualExtent.height, capabilities.minImageExtent.height,
 					   capabilities.maxImageExtent.height);
-
 		return actualExtent;
 	}
 }
