@@ -188,7 +188,5 @@ void vk_Device::destroyLogicalDevice() {
 		vkDestroyDevice(logicalDevice, nullptr);
 		std::cout << "Logical device destroyed!" << std::endl;
 	}
-	vkDestroyDevice(logicalDevice, nullptr);
-	std::cout << "Logical device destroyed!" << std::endl;
 }
 }  // namespace vk

@@ -28,10 +28,7 @@ void vk::App::mainLoop() {
 }
 void vk::App::cleanup() {
 	std::cout << "Cleaning up..." << std::endl;
-	graphicsPipeline.cleanupGraphicsPipeline();
-	std::cout << "Graphics pipeline cleaned up!" << std::endl;
-	vkDestroyPipelineLayout(device.getLogicalDevice(),
-							pipelineLayout.getPipelineLayout(), nullptr);
+	pipelineLayout.cleanupPipelineLayout();
 	std::cout << "Pipeline layout destroyed!" << std::endl;
 	renderPass.cleanupRenderPass();
 	std::cout << "Render pass destroyed!" << std::endl;

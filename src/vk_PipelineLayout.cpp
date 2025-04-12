@@ -24,7 +24,10 @@ void vk_PipelineLayout::createPipelineLayout() {
 }
 
 void vk_PipelineLayout::cleanupPipelineLayout() {
-	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-	std::cout << "PipelineLayout destructor called" << std::endl;
+	if (pipelineLayout != VK_NULL_HANDLE) {
+		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+		pipelineLayout = VK_NULL_HANDLE;
+		std::cout << "Pipeline layout destroyed" << std::endl;
+	}
 }
 }  // namespace vk

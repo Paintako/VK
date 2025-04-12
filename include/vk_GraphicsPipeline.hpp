@@ -30,7 +30,7 @@ private:
 	VkDevice &device;
 	VkRenderPass &renderPass;
 	VkPipelineLayout &pipelineLayout;
-	VkPipeline graphicsPipeline;
+	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
 	VkShaderModule vertShaderModule;
 	VkShaderModule fragShaderModule;
