@@ -14,6 +14,7 @@
 #include "vk_PipelineLayout.hpp"
 #include "vk_RenderPass.hpp"
 #include "vk_SwapChain.hpp"
+#include "vk_Sync.hpp"
 #include "window.hpp"
 
 namespace vk {
@@ -32,6 +33,8 @@ private:
 	void mainLoop();
 	void cleanup();
 
+	void drawFrame();
+
 	// Class members
 	Window window;
 	vk_Instance instance{window};
@@ -46,5 +49,6 @@ private:
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
 	vk_CommandBuffers commandBuffers{device};
+	vk_Sync sync_object{device.getLogicalDevice()};
 };
 }  // namespace vk

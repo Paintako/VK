@@ -46,6 +46,9 @@ public:
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
+	VkQueue &getGraphicsQueue() { return graphicsQueue; }
+	VkQueue &getPresentQueue() { return presentQueue; }
+
 private:
 	VkSurfaceKHR surface = nullptr;
 

@@ -1,43 +1,116 @@
 #include "app.hpp"
 
-vk::App::App() {
+namespace vk {
+App::App() {
 	// Constructor implementation
 	std::cout << "App constructor called" << std::endl;
 }
 
-vk::App::~App() {
+App::~App() {
 	// Destructor implementation
 	std::cout << "App destructor called" << std::endl;
 	cleanup();
 	std::cout << "App destructor finished" << std::endl;
 }
-void vk::App::run() {
+void App::run() {
 	initVulkan();
 	mainLoop();
 	// cleanup();
 }
-void vk::App::initVulkan() {
+void App::initVulkan() {
 	// Vulkan initialization code
 	std::cout << "Vulkan initialized!" << std::endl;
 }
-void vk::App::mainLoop() {
+void App::mainLoop() {
 	// Main loop code
 	while (!glfwWindowShouldClose(window.getWindow())) {
 		glfwPollEvents();
-		commandBuffers.recordCommandBuffer(
-			commandBuffers.getCommandBuffer(), renderPass.getRenderPass(),
-			graphicsPipeline.getGraphicsPipeline(),
-			frameBuffer.getswapChainFrameBuffer()[0],
-			swapChain.getSwapChainExtent()	// Pass the swap chain extent
-		);
+		drawFrame();
 	}
+
+	vkDeviceWaitIdle(device.getLogicalDevice());
+	std::cout << "Main loop finished!" << std::endl;
 }
-void vk::App::cleanup() {
+
+void App::drawFrame() {
+	// Drawing code
+	std::cout << "Drawing frame..." << std::endl;
+
+	// Wait for the fence to be signaled, which indicates that the GPU has
+	// finished rendering the previous frame
+	vkWaitForFences(device.getLogicalDevice(), 1,
+					&sync_object.getInFlightFence(), VK_TRUE, UINT64_MAX);
+
+	// Reset the fence to the unsignaled state
+	vkResetFences(device.getLogicalDevice(), 1,
+				  &sync_object.getInFlightFence());
+
+	// Acquire the next image from the swap chain
+	uint32_t imageIndex;
+	vkAcquireNextImageKHR(device.getLogicalDevice(), swapChain.getSwapChain(),
+						  UINT64_MAX, sync_object.getImageAvailableSemaphore(),
+						  VK_NULL_HANDLE, &imageIndex);
+
+	// Reset the command buffer before recording
+	vkResetCommandBuffer(commandBuffers.getCommandBuffer(), 0);
+
+	// Record the command buffer
+	commandBuffers.recordCommandBuffer(
+		commandBuffers.getCommandBuffer(), renderPass.getRenderPass(),
+		graphicsPipeline.getGraphicsPipeline(),
+		frameBuffer.getswapChainFrameBuffer()[imageIndex],
+		swapChain.getSwapChainExtent());
+
+	// Submit the command buffer to the graphics queue
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = {sync_object.getImageAvailableSemaphore()};
+	VkPipelineStageFlags waitStages[] = {
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffers.getCommandBuffer();
+
+	VkSemaphore signalSemaphores[] = {sync_object.getRenderFinishedSemaphore()};
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo,
+					  sync_object.getInFlightFence()) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+
+	// Present the image to the swap chain
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = {swapChain.getSwapChain()};
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+
+	presentInfo.pImageIndices = &imageIndex;
+
+	vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
+	std::cout << "Frame drawn!" << std::endl;
+}
+
+void App::cleanup() {
 	std::cout << "Cleaning up..." << std::endl;
+	sync_object.cleanupSyncObjects();
+	std::cout << "Sync objects destroyed!" << std::endl;
 	commandBuffers.cleanupCommandPool();
 	std::cout << "Command pool destroyed!" << std::endl;
 	frameBuffer.cleanupFrameBuffer();
 	std::cout << "Frame buffer destroyed!" << std::endl;
+	graphicsPipeline.cleanupGraphicsPipeline();
+	std::cout << "Graphics pipeline destroyed!" << std::endl;
 	pipelineLayout.cleanupPipelineLayout();
 	std::cout << "Pipeline layout destroyed!" << std::endl;
 	renderPass.cleanupRenderPass();
@@ -58,3 +131,4 @@ void vk::App::cleanup() {
 	std::cout << "GLFW terminated!" << std::endl;
 	std::cout << "App cleanup finished!" << std::endl;
 }
+}  // namespace vk

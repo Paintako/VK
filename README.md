@@ -218,6 +218,105 @@ To record a `CommandBuffer`, we need to:
 5. `vkCmdEndRenderPass`
 6. `vkEndCommandBuffer`
 
+### Synchornization
+Outline of a frame during rendering & presentation
+1. Acquire an image from the swap chain
+2. Execute commands that draw onto the acquired image
+3. Present that image to the screen for presentation, returning it to the swapchain
+
+Each of these events is set in motion using a single function call, but are **all executed asynchronously**. 
+
+#### Semaphores
+A semaphore is used to **add order between queue operations**. 
+Examples of queues are the graphics queue and the presentation queue. 
+Semaphores are used both to order work inside the same queue and between different queues.
+
+```c
+VkCommandBuffer A, B = ... // record command buffers
+VkSemaphore S = ... // create a semaphore
+
+// enqueue A, signal S when done - starts executing immediately
+vkQueueSubmit(work: A, signal: S, wait: None)
+
+// enqueue B, wait on S to start
+vkQueueSubmit(work: B, signal: None, wait: S)
+```
+
+Note that `vkQueueSubmit` returns **immediately**, the waiting happens on **GPU**.
+
+#### Fences
+To make the `GPU` wait --> `semaphore`
+Make CPU(host) wait --> `Fence`
+
+For example: taking a screenshot.
+Say we have already done the necessary work on the GPU. Now need to transfer the image from the GPU over to the host and then save the memory to a file. 
+We have command buffer A which executes the transfer and fence F. 
+We submit command buffer A with fence F, then immediately tell the host to wait for F to signal.
+This causes the host to block until command buffer A finishes execution. Thus we are safe to let the host save the file to disk, as the memory transfer has completed.
+
+```c
+VkCommandBuffer A = ... // record command buffer with the transfer
+VkFence F = ... // create the fence
+
+// enqueue A, start work immediately, signal F when done
+vkQueueSubmit(work: A, fence: F)
+
+vkWaitForFence(F) // blocks execution until A has finished executing
+
+save_screenshot_to_disk() // can't run until the transfer has finished
+```
+
+#### Real case
+1. `vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);`
+這段會向 swapChain 要一張 image, 並且 `imageAvailableSemaphore` 是一個 semaphore, 還沒跟 swapChain 要到圖片前他會 wait 住, 直到要到之後才會 set
+2. record draw calls into a commandBuffer
+3. 準備 submit commandBuffer
+    * `VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};`
+    * `VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};`
+        * `waitSemaphores`: 我要在開始執行前要等哪些 semaphore, 那這邊要等到要到 image 後才開始執行
+        * `waitStages`: 當 `waitSepmaphores` 尚未被 set 前, gpu 最多能執行到的 stage
+```c
+Vertex Input → Vertex Shader → Fragment Shader → Color Attachment Output
+```
+這裡就算還沒等到 `imageAvailableSemaphore`, GPU 也會把工作做到 Fragment shader 然後卡在這裡, 直到 `imageAvailableSemaphore` 被 set 他才會繼續往下工作
+4. vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence)
+    * inFlightFence 是一個 opntional 的 parameter, 可以透過這個 Fence 來告訴 CPU 該 command buffer 可以被安全的使用
+    * CPU 會等這個 Fence 被 set 之後才會繼續的錄製 & submit
+
+#### Subpass
+Vulkan 在 `Subpass` 間，會自動對 attachment 做 **image layout transition**
+`RenderPasss` 本身就是一個 `Subpass`, 所以他的開始結束自然也有 transition
+e.g., `VK_IMAGE_LAYOUT_UNDEFINED` → `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`
+
+```bash
+transition           transition              transition
+          subpass...             subpass2...
+```
+
+但這個有一個問題，這個 transtion 假設是發生在 `graphic pipeline` 的 top(TOP_OF_PIPE)，而並不是在真正取得 image 後 
+(透過 vkAcquireNextImageKHR 並等待 imageAvailableSemaphore, 還沒拿到之前其實 GPU 早就可以提前工作了)
+所以可能長這樣:
+```bash
+[預設 layout transition 發生了]（Vulkan 以為 image 準備好了）
+              ↓
+[你才透過 imageAvailableSemaphore 確認 image 真正可用]
+```
+這樣可能導致 undefined behavior
+
+解法是:
+1. 
+```cpp
+waitStages[] = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
+```
+這種做法 pipeline stage (layout transtion) 會等到 `imageAvailableSemaphore` signal，也就是說 GPU 在等到 signal set 前不會做任何工作 
+
+2. 
+```cpp
+waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+```
+這種做法是讓 layout transition 晚點做
+
+
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)
 [Coordinates in shader](https://ithelp.ithome.com.tw/articles/10245073)
