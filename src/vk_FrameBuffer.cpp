@@ -18,7 +18,7 @@ void vk_FrameBuffer::createFrameBuffer(
 	std::vector<VkImageView> &swapChainImageViews) {
 	swapChainFramebuffers.resize(swapChainImageViews.size());
 	VkExtent2D swapChainExtent = swapChain.getSwapChainExtent();
-    
+
 	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
 		std::cout << "Creating framebuffer " << i
 				  << ", attachments: " << swapChainImageViews[i] << std::endl;
@@ -32,7 +32,7 @@ void vk_FrameBuffer::createFrameBuffer(
 		framebufferInfo.width = swapChainExtent.width;
 		framebufferInfo.height = swapChainExtent.height;
 		framebufferInfo.layers = 1;
-		
+
 		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr,
 								&swapChainFramebuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");

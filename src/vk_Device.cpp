@@ -60,6 +60,7 @@ bool checkDeviceExtensionSupport(
 
 bool vk_Device::isDeviceSuitable(VkPhysicalDevice device) {
 	QueueFamilyIndices indices = findQueueFamilies(device);
+	queueFamilyIndices = indices;
 	bool swapChainAdequate = false;
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(
 		device);  // check if this physical device supports swap chain

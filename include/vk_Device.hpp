@@ -41,6 +41,7 @@ public:
 
 	VkDevice &getLogicalDevice() { return logicalDevice; }
 	VkPhysicalDevice &getPhysicalDevice() { return physicalDevice; }
+	QueueFamilyIndices &getQueueFamilyIndices() { return queueFamilyIndices; }
 
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
@@ -52,6 +53,8 @@ private:
 	VkPhysicalDevice physicalDevice = nullptr;
 	VkDevice logicalDevice = nullptr;
 
+	/* Queue families */
+	QueueFamilyIndices queueFamilyIndices;
 	VkQueue graphicsQueue = nullptr;
 	VkQueue presentQueue = nullptr;
 

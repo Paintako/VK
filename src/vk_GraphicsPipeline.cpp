@@ -12,6 +12,8 @@ vk_GraphicsPipeline::vk_GraphicsPipeline(VkDevice &device,
 	: device(device), renderPass(renderPass), pipelineLayout(pipelineLayout) {
 	// Constructor implementation
 	std::cout << "GraphicsPipeline constructor called" << std::endl;
+	createGraphicsPipeline("./shaders/shader.vert.spv",
+						   "./shaders/shader.frag.spv");
 }
 
 static std::vector<char> readFile(const std::string &filename) {

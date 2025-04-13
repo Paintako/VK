@@ -24,10 +24,18 @@ void vk::App::mainLoop() {
 	// Main loop code
 	while (!glfwWindowShouldClose(window.getWindow())) {
 		glfwPollEvents();
+		commandBuffers.recordCommandBuffer(
+			commandBuffers.getCommandBuffer(), renderPass.getRenderPass(),
+			graphicsPipeline.getGraphicsPipeline(),
+			frameBuffer.getswapChainFrameBuffer()[0],
+			swapChain.getSwapChainExtent()	// Pass the swap chain extent
+		);
 	}
 }
 void vk::App::cleanup() {
 	std::cout << "Cleaning up..." << std::endl;
+	commandBuffers.cleanupCommandPool();
+	std::cout << "Command pool destroyed!" << std::endl;
 	frameBuffer.cleanupFrameBuffer();
 	std::cout << "Frame buffer destroyed!" << std::endl;
 	pipelineLayout.cleanupPipelineLayout();
@@ -38,19 +46,8 @@ void vk::App::cleanup() {
 	std::cout << "Swap chain image views destroyed!" << std::endl;
 	swapChain.destroySwapChain();
 	std::cout << "Swap chain destroyed!" << std::endl;
-
-	if (device.getLogicalDevice() != VK_NULL_HANDLE) {
-		std::cout << "Destroying logical device..." << std::endl;
-		device.destroyLogicalDevice();
-		std::cout << "Logical device destroyed!" << std::endl;
-	}
-
-	// device.destroyLogicalDevice();
+	device.destroyLogicalDevice();
 	std::cout << "Logical device destroyed!" << std::endl;
-	// if (enableValidationLayers) {
-	// 	DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-	// }
-
 	vkDestroySurfaceKHR(instance.getInstance(), instance.getSurface(), nullptr);
 	std::cout << "Surface destroyed!" << std::endl;
 	vkDestroyInstance(instance.getInstance(), nullptr);

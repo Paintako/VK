@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+#include "vk_CommandBuffers.hpp"
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
 #include "vk_GraphicsPipeline.hpp"
@@ -44,5 +45,6 @@ private:
 										 pipelineLayout.getPipelineLayout()};
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
+	vk_CommandBuffers commandBuffers{device};
 };
 }  // namespace vk
