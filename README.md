@@ -209,6 +209,14 @@ Relation between VkImage, VkImageView, framebuffer, framebuffer attachments.
     * 是一個容器，用來把 renderpass 需要的 attachment slots（color, depth 等）「具體綁定」到某些 VkImageView 上。
     * 就像是在告訴 Vulkan：這個 renderpass 的 color0 用這張圖、depth 用這張圖。
 
+### CommandBuffer
+To record a `CommandBuffer`, we need to:
+1. Set `VkCommandBufferBeginInfo`, which tells driver which kind of commandbuffer it is (primiary/secondary)
+2. `vkCmdBeginRenderPass`
+3. `vkCmdBindPipeline`
+4. draw calls
+5. `vkCmdEndRenderPass`
+6. `vkEndCommandBuffer`
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)
