@@ -17,6 +17,8 @@
 #include "vk_Sync.hpp"
 #include "window.hpp"
 
+#define MAX_FRAMES_IN_FLIGHT 2
+
 namespace vk {
 class App {
 public:
@@ -48,7 +50,10 @@ private:
 										 pipelineLayout.getPipelineLayout()};
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
-	vk_CommandBuffers commandBuffers{device};
-	vk_Sync sync_object{device.getLogicalDevice()};
+	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
+	vk_Sync sync_object{device.getLogicalDevice(), MAX_FRAMES_IN_FLIGHT};
+
+	uint32_t currentFrame = 0;
+	uint32_t max_frames_in_flight = MAX_FRAMES_IN_FLIGHT;
 };
 }  // namespace vk

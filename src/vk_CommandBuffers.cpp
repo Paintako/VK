@@ -3,12 +3,14 @@
 #include <iostream>
 
 namespace vk {
-vk_CommandBuffers::vk_CommandBuffers(vk_Device &device) : device(device) {
+vk_CommandBuffers::vk_CommandBuffers(vk_Device &device,
+									 size_t max_frames_in_flight)
+	: device(device), max_frames_in_flight(max_frames_in_flight) {
 	// Constructor implementation
 	std::cout << "CommandBuffers constructor called" << std::endl;
 	createCommandPool();
 	std::cout << "Command pool created" << std::endl;
-	createCommandBuffer();
+	createCommandBuffer(max_frames_in_flight);
 	std::cout << "Command buffer created" << std::endl;
 }
 
@@ -27,16 +29,17 @@ void vk_CommandBuffers::createCommandPool() {
 	std::cout << "Command pool created" << std::endl;
 }
 
-void vk_CommandBuffers::createCommandBuffer() {
+void vk_CommandBuffers::createCommandBuffer(size_t max_frames_in_flight) {
 	// Allocate command buffer
+	commandBuffers.resize(max_frames_in_flight);
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = 1;
+	allocInfo.commandBufferCount = (uint32_t) max_frames_in_flight;
 
 	if (vkAllocateCommandBuffers(device.getLogicalDevice(), &allocInfo,
-								 &commandBuffer) != VK_SUCCESS) {
+								 commandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate command buffer!");
 	}
 	std::cout << "Command buffer allocated" << std::endl;

@@ -316,6 +316,15 @@ waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 ```
 這種做法是讓 layout transition 晚點做
 
+### Frame in flights
+Flow:
+1. CPU 準備 commands --> Submit to driver --> GPU
+2. GPU Parallel processing, 但是 GPU 通常會比 CPU 慢一個 frame
+3. 當上一個 frame 跑完之後 (GPU queue 空了) 之後才開始準備下一個 frame 指令的話, 那在等待GPU完成時 CPU 就會空轉
+4. 為了避免 CPU 空轉 --> frame in flights --> 需要為每一張 Frame 準備自己的:
+    * command buffer
+    * semaphore (for GPU sync)
+    * fence (for C <--> G sync)
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)

@@ -39,25 +39,28 @@ void App::drawFrame() {
 	// Wait for the fence to be signaled, which indicates that the GPU has
 	// finished rendering the previous frame
 	vkWaitForFences(device.getLogicalDevice(), 1,
-					&sync_object.getInFlightFence(), VK_TRUE, UINT64_MAX);
+					&sync_object.getInFlightFence(currentFrame), VK_TRUE,
+					UINT64_MAX);
 
 	// Reset the fence to the unsignaled state
 	vkResetFences(device.getLogicalDevice(), 1,
-				  &sync_object.getInFlightFence());
+				  &sync_object.getInFlightFence(currentFrame));
 
 	// Acquire the next image from the swap chain
 	uint32_t imageIndex;
 	vkAcquireNextImageKHR(device.getLogicalDevice(), swapChain.getSwapChain(),
-						  UINT64_MAX, sync_object.getImageAvailableSemaphore(),
+						  UINT64_MAX,
+						  sync_object.getImageAvailableSemaphore(currentFrame),
 						  VK_NULL_HANDLE, &imageIndex);
 
 	// Reset the command buffer before recording
-	vkResetCommandBuffer(commandBuffers.getCommandBuffer(), 0);
-
+	vkResetCommandBuffer(commandBuffers.getCommandBuffer(currentFrame), 0);
+	VkCommandBuffer commandBuffer =
+		commandBuffers.getCommandBuffer(currentFrame);
 	// Record the command buffer
 	commandBuffers.recordCommandBuffer(
-		commandBuffers.getCommandBuffer(), renderPass.getRenderPass(),
-		graphicsPipeline.getGraphicsPipeline(),
+		commandBuffers.getCommandBuffer(currentFrame),
+		renderPass.getRenderPass(), graphicsPipeline.getGraphicsPipeline(),
 		frameBuffer.getswapChainFrameBuffer()[imageIndex],
 		swapChain.getSwapChainExtent());
 
@@ -65,7 +68,8 @@ void App::drawFrame() {
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = {sync_object.getImageAvailableSemaphore()};
+	VkSemaphore waitSemaphores[] = {
+		sync_object.getImageAvailableSemaphore(currentFrame)};
 	VkPipelineStageFlags waitStages[] = {
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 	submitInfo.waitSemaphoreCount = 1;
@@ -73,14 +77,16 @@ void App::drawFrame() {
 	submitInfo.pWaitDstStageMask = waitStages;
 
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffers.getCommandBuffer();
+	submitInfo.pCommandBuffers = &commandBuffers.getCommandBuffer(currentFrame);
 
-	VkSemaphore signalSemaphores[] = {sync_object.getRenderFinishedSemaphore()};
+	VkSemaphore signalSemaphores[] = {
+		sync_object.getRenderFinishedSemaphore(currentFrame)};
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	if (vkQueueSubmit(device.getGraphicsQueue(), 1, &submitInfo,
-					  sync_object.getInFlightFence()) != VK_SUCCESS) {
+					  sync_object.getInFlightFence(currentFrame)) !=
+		VK_SUCCESS) {
 		throw std::runtime_error("failed to submit draw command buffer!");
 	}
 
@@ -99,6 +105,7 @@ void App::drawFrame() {
 
 	vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
 	std::cout << "Frame drawn!" << std::endl;
+	currentFrame = (currentFrame + 1) % max_frames_in_flight;
 }
 
 void App::cleanup() {

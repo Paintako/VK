@@ -5,13 +5,15 @@
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
 
+#include <vector>
+
 namespace vk {
 class vk_CommandBuffers {
 public:
-	vk_CommandBuffers(vk_Device &device);
+	vk_CommandBuffers(vk_Device &device, size_t max_frames_in_flight);
 	~vk_CommandBuffers() = default;
 
-	void createCommandBuffer();
+	void createCommandBuffer(size_t max_frames_in_flight);
 	void beginCommandBuffer();
 	void endCommandBuffer();
 	void submitCommandBuffer();
@@ -24,6 +26,9 @@ public:
 
 	VkCommandBuffer &getCommandBuffer() { return commandBuffer; }
 	VkCommandPool &getCommandPool() { return commandPool; }
+	VkCommandBuffer &getCommandBuffer(size_t index) {
+		return commandBuffers[index];
+	}
 
 	void cleanupCommandPool();
 
@@ -32,6 +37,10 @@ private:
 
 	VkCommandPool commandPool;
 	VkCommandBuffer commandBuffer;
+
+	std::vector<VkCommandBuffer> commandBuffers;
+
+	size_t max_frames_in_flight;
 
 	/* Helper function */
 	void createCommandPool();
