@@ -4,6 +4,7 @@ namespace vk {
 App::App() {
 	// Constructor implementation
 	std::cout << "App constructor called" << std::endl;
+	initVulkan();
 }
 
 App::~App() {
@@ -13,13 +14,31 @@ App::~App() {
 	std::cout << "App destructor finished" << std::endl;
 }
 void App::run() {
-	initVulkan();
 	mainLoop();
 	// cleanup();
 }
+
+static void framebufferResizeCallback(GLFWwindow *window,
+									  int width,
+									  int height) {
+	std::cout << "Framebuffer resized!" << std::endl;
+	void *ptr = glfwGetWindowUserPointer(window);
+	if (!ptr) {
+		std::cerr << "Window user pointer is null!" << std::endl;
+		return;
+	}
+	auto app = reinterpret_cast<App *>(glfwGetWindowUserPointer(window));
+	app->framebufferResized = true;
+	std::cout << "Framebuffer resized callback called!" << std::endl;
+	std::cout << app->framebufferResized << std::endl;
+}
+
 void App::initVulkan() {
 	// Vulkan initialization code
 	std::cout << "Vulkan initialized!" << std::endl;
+	glfwSetWindowUserPointer(window.getWindow(), this);
+	glfwSetFramebufferSizeCallback(window.getWindow(),
+								   framebufferResizeCallback);
 }
 void App::mainLoop() {
 	// Main loop code
@@ -42,16 +61,24 @@ void App::drawFrame() {
 					&sync_object.getInFlightFence(currentFrame), VK_TRUE,
 					UINT64_MAX);
 
+	// Acquire the next image from the swap chain
+	uint32_t imageIndex;
+	VkResult result = vkAcquireNextImageKHR(
+		device.getLogicalDevice(), swapChain.getSwapChain(), UINT64_MAX,
+		sync_object.getImageAvailableSemaphore(currentFrame), VK_NULL_HANDLE,
+		&imageIndex);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		std::cout << "Swap chain out of date!" << std::endl;
+		recreateSwapChain();
+		return;
+	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		throw std::runtime_error("failed to acquire swap chain image!");
+	}
+
 	// Reset the fence to the unsignaled state
 	vkResetFences(device.getLogicalDevice(), 1,
 				  &sync_object.getInFlightFence(currentFrame));
-
-	// Acquire the next image from the swap chain
-	uint32_t imageIndex;
-	vkAcquireNextImageKHR(device.getLogicalDevice(), swapChain.getSwapChain(),
-						  UINT64_MAX,
-						  sync_object.getImageAvailableSemaphore(currentFrame),
-						  VK_NULL_HANDLE, &imageIndex);
 
 	// Reset the command buffer before recording
 	vkResetCommandBuffer(commandBuffers.getCommandBuffer(currentFrame), 0);
@@ -103,39 +130,69 @@ void App::drawFrame() {
 
 	presentInfo.pImageIndices = &imageIndex;
 
-	vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
-	std::cout << "Frame drawn!" << std::endl;
+	result = vkQueuePresentKHR(device.getPresentQueue(), &presentInfo);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ||
+		framebufferResized) {
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			std::cout << "Swap chain out of date!" << std::endl;
+		} else if (result == VK_SUBOPTIMAL_KHR) {
+			// The swap chain is suboptimal, but we can still use it
+			std::cout << "Swap chain suboptimal!" << std::endl;
+		} else {
+			std::cout << "Framebuffer resized!" << std::endl;
+		}
+		framebufferResized = false;
+		recreateSwapChain();
+	} else if (result != VK_SUCCESS) {
+		throw std::runtime_error("failed to present swap chain image!");
+	}
 	currentFrame = (currentFrame + 1) % max_frames_in_flight;
 }
 
-void App::cleanup() {
-	std::cout << "Cleaning up..." << std::endl;
-	sync_object.cleanupSyncObjects();
-	std::cout << "Sync objects destroyed!" << std::endl;
-	commandBuffers.cleanupCommandPool();
-	std::cout << "Command pool destroyed!" << std::endl;
+void App::recreateSwapChain() {
+	int width = 0, height = 0;
+	glfwGetFramebufferSize(window.getWindow(), &width, &height);
+	while (width == 0 || height == 0) {
+		glfwGetFramebufferSize(window.getWindow(), &width, &height);
+		glfwWaitEvents();
+	}
+
+	vkDeviceWaitIdle(device.getLogicalDevice());
+
+	cleanupSwapChain();
+
+	swapChain.createSwapChain();
+	swapChain.createSwapChainImageViews();
+	frameBuffer.createFrameBuffer(swapChain.getSwapChainImageViews());
+}
+
+void App::cleanupSwapChain() {
+	// Cleanup all the resources related to the swap chain
 	frameBuffer.cleanupFrameBuffer();
-	std::cout << "Frame buffer destroyed!" << std::endl;
-	graphicsPipeline.cleanupGraphicsPipeline();
-	std::cout << "Graphics pipeline destroyed!" << std::endl;
-	pipelineLayout.cleanupPipelineLayout();
-	std::cout << "Pipeline layout destroyed!" << std::endl;
-	renderPass.cleanupRenderPass();
-	std::cout << "Render pass destroyed!" << std::endl;
 	swapChain.destroySwapChainImageViews();
-	std::cout << "Swap chain image views destroyed!" << std::endl;
 	swapChain.destroySwapChain();
-	std::cout << "Swap chain destroyed!" << std::endl;
+}
+
+void App::cleanup() {
+	cleanupSwapChain();
+
+	graphicsPipeline.cleanupGraphicsPipeline();
+	pipelineLayout.cleanupPipelineLayout();
+
+	renderPass.cleanupRenderPass();
+
+	sync_object.cleanupSyncObjects();
+
+	commandBuffers.cleanupCommandPool();
+
 	device.destroyLogicalDevice();
-	std::cout << "Logical device destroyed!" << std::endl;
+
 	vkDestroySurfaceKHR(instance.getInstance(), instance.getSurface(), nullptr);
-	std::cout << "Surface destroyed!" << std::endl;
 	vkDestroyInstance(instance.getInstance(), nullptr);
-	std::cout << "Instance destroyed!" << std::endl;
+
 	glfwDestroyWindow(window.getWindow());
-	std::cout << "Window destroyed!" << std::endl;
+
 	glfwTerminate();
-	std::cout << "GLFW terminated!" << std::endl;
 	std::cout << "App cleanup finished!" << std::endl;
 }
 }  // namespace vk
