@@ -5,6 +5,9 @@ App::App() {
 	// Constructor implementation
 	std::cout << "App constructor called" << std::endl;
 	initVulkan();
+
+	vertex.createVertexBuffer(vertices, device.getLogicalDevice(),
+							  device.getPhysicalDevice());
 }
 
 App::~App() {
@@ -52,9 +55,6 @@ void App::mainLoop() {
 }
 
 void App::drawFrame() {
-	// Drawing code
-	std::cout << "Drawing frame..." << std::endl;
-
 	// Wait for the fence to be signaled, which indicates that the GPU has
 	// finished rendering the previous frame
 	vkWaitForFences(device.getLogicalDevice(), 1,
@@ -89,7 +89,7 @@ void App::drawFrame() {
 		commandBuffers.getCommandBuffer(currentFrame),
 		renderPass.getRenderPass(), graphicsPipeline.getGraphicsPipeline(),
 		frameBuffer.getswapChainFrameBuffer()[imageIndex],
-		swapChain.getSwapChainExtent());
+		swapChain.getSwapChainExtent(), vertex.getVertexBuffer(), vertices);
 
 	// Submit the command buffer to the graphics queue
 	VkSubmitInfo submitInfo{};
