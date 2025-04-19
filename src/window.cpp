@@ -1,6 +1,5 @@
 #include "window.hpp"
 
-
 namespace vk {
 Window::Window() {
 	// Constructor implementation
@@ -13,6 +12,7 @@ Window::~Window() {
 	std::cout << "Window destructor called" << std::endl;
 	// destroyWindow();
 }
+
 void Window::createWindow() {
 	if (!glfwInit()) {
 		throw std::runtime_error("Failed to initialize GLFW");

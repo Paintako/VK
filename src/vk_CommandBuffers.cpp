@@ -103,7 +103,6 @@ void vk_CommandBuffers::recordCommandBuffer(VkCommandBuffer &commandBuffer,
 	if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 		throw std::runtime_error("failed to record command buffer!");
 	}
-	std::cout << "Command buffer recorded" << std::endl;
 }
 
 void vk_CommandBuffers::cleanupCommandPool() {

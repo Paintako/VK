@@ -30,12 +30,16 @@ public:
 
 	void run();
 
+	bool framebufferResized = false;
+
 private:
 	void initVulkan();
 	void mainLoop();
 	void cleanup();
 
 	void drawFrame();
+	void recreateSwapChain();
+	void cleanupSwapChain();
 
 	// Class members
 	Window window;
