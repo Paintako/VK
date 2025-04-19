@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <iostream>
 #include <stdexcept>
 
@@ -15,7 +16,10 @@
 #include "vk_RenderPass.hpp"
 #include "vk_SwapChain.hpp"
 #include "vk_Sync.hpp"
+#include "vk_Vertex.hpp"
 #include "window.hpp"
+
+#include <glm/glm.hpp>
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
@@ -31,6 +35,11 @@ public:
 	void run();
 
 	bool framebufferResized = false;
+
+	std::vector<Vertex::Vertex_struct> vertices = {
+		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
 private:
 	void initVulkan();
@@ -54,6 +63,7 @@ private:
 										 pipelineLayout.getPipelineLayout()};
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
+	Vertex vertex;
 	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
 	vk_Sync sync_object{device.getLogicalDevice(), MAX_FRAMES_IN_FLIGHT};
 

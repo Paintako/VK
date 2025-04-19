@@ -5,6 +5,9 @@ App::App() {
 	// Constructor implementation
 	std::cout << "App constructor called" << std::endl;
 	initVulkan();
+
+	vertex.createVertexBuffer(vertices, device.getLogicalDevice(),
+							  device.getPhysicalDevice());
 }
 
 App::~App() {
@@ -86,7 +89,7 @@ void App::drawFrame() {
 		commandBuffers.getCommandBuffer(currentFrame),
 		renderPass.getRenderPass(), graphicsPipeline.getGraphicsPipeline(),
 		frameBuffer.getswapChainFrameBuffer()[imageIndex],
-		swapChain.getSwapChainExtent());
+		swapChain.getSwapChainExtent(), vertex.getVertexBuffer(), vertices);
 
 	// Submit the command buffer to the graphics queue
 	VkSubmitInfo submitInfo{};

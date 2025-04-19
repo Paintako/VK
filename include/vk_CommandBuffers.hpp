@@ -4,6 +4,7 @@
 
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
+#include "vk_Vertex.hpp"
 
 #include <vector>
 
@@ -22,7 +23,9 @@ public:
 							 VkRenderPass &renderPass,
 							 VkPipeline &graphicsPipeline,
 							 VkFramebuffer &frameBuffer,
-							 VkExtent2D &swapChainExtent);
+							 VkExtent2D &swapChainExtent,
+							 VkBuffer &vertexBuffer,
+							 std::vector<Vertex::Vertex_struct> &vertices);
 
 	VkCommandBuffer &getCommandBuffer() { return commandBuffer; }
 	VkCommandPool &getCommandPool() { return commandPool; }

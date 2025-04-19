@@ -1,4 +1,5 @@
 #include "vk_CommandBuffers.hpp"
+#include "vk_Vertex.hpp"
 
 #include <iostream>
 
@@ -45,11 +46,14 @@ void vk_CommandBuffers::createCommandBuffer(size_t max_frames_in_flight) {
 	std::cout << "Command buffer allocated" << std::endl;
 }
 
-void vk_CommandBuffers::recordCommandBuffer(VkCommandBuffer &commandBuffer,
-											VkRenderPass &renderPass,
-											VkPipeline &graphicsPipeline,
-											VkFramebuffer &frameBuffer,
-											VkExtent2D &swapChainExtent) {
+void vk_CommandBuffers::recordCommandBuffer(
+	VkCommandBuffer &commandBuffer,
+	VkRenderPass &renderPass,
+	VkPipeline &graphicsPipeline,
+	VkFramebuffer &frameBuffer,
+	VkExtent2D &swapChainExtent,
+	VkBuffer &vertexBuffer,
+	std::vector<Vertex::Vertex_struct> &vertices) {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = 0;				   // Optional
@@ -80,6 +84,10 @@ void vk_CommandBuffers::recordCommandBuffer(VkCommandBuffer &commandBuffer,
 	vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 					  graphicsPipeline);
 
+	VkBuffer vertexBuffers[] = {vertexBuffer};
+	VkDeviceSize offsets[] = {0};
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
@@ -94,8 +102,16 @@ void vk_CommandBuffers::recordCommandBuffer(VkCommandBuffer &commandBuffer,
 	scissor.extent = swapChainExtent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+	// Dump the vertex buffer contents
+	std::cout << "Vertex buffer contents:" << std::endl;
+	for (const auto &vertex : vertices) {
+		std::cout << "Position: (" << vertex.pos.x << ", " << vertex.pos.y
+				  << "), Color: (" << vertex.color.r << ", " << vertex.color.g
+				  << ", " << vertex.color.b << ")" << std::endl;
+	}
+
 	// Draw the triangle
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
 
 	// End the render pass
 	vkCmdEndRenderPass(commandBuffer);
