@@ -63,8 +63,9 @@ private:
 										 pipelineLayout.getPipelineLayout()};
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
-	Vertex vertex;
 	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
+	Vertex vertex{device.getLogicalDevice(), device.getPhysicalDevice(),
+				  commandBuffers.getCommandPool(), device.getGraphicsQueue()};
 	vk_Sync sync_object{device.getLogicalDevice(), MAX_FRAMES_IN_FLIGHT};
 
 	uint32_t currentFrame = 0;

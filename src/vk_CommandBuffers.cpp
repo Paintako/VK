@@ -102,13 +102,13 @@ void vk_CommandBuffers::recordCommandBuffer(
 	scissor.extent = swapChainExtent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	// Dump the vertex buffer contents
-	std::cout << "Vertex buffer contents:" << std::endl;
-	for (const auto &vertex : vertices) {
-		std::cout << "Position: (" << vertex.pos.x << ", " << vertex.pos.y
-				  << "), Color: (" << vertex.color.r << ", " << vertex.color.g
-				  << ", " << vertex.color.b << ")" << std::endl;
-	}
+	// // Dump the vertex buffer contents
+	// std::cout << "Vertex buffer contents:" << std::endl;
+	// for (const auto &vertex : vertices) {
+	// 	std::cout << "Position: (" << vertex.pos.x << ", " << vertex.pos.y
+	// 			  << "), Color: (" << vertex.color.r << ", " << vertex.color.g
+	// 			  << ", " << vertex.color.b << ")" << std::endl;
+	// }
 
 	// Draw the triangle
 	vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);

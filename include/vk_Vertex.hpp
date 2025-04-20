@@ -9,7 +9,14 @@
 namespace vk {
 class Vertex {
 public:
-	Vertex() = default;
+	Vertex(VkDevice &device,
+		   VkPhysicalDevice &physicalDevice,
+		   VkCommandPool &commandPool,
+		   VkQueue &graphicsQueue)
+		: device(device),
+		  physicalDevice(physicalDevice),
+		  commandPool(commandPool),
+		  graphicsQueue(graphicsQueue) {}
 	~Vertex() = default;
 
 	struct Vertex_struct {
@@ -20,19 +27,29 @@ public:
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::array<VkVertexInputAttributeDescription, 2>
 	getAttributeDescriptions();
-	void createVertexBuffer(std::vector<Vertex::Vertex_struct> &vertices,
-							VkDevice device,
-							VkPhysicalDevice physicalDevice);
+	void createVertexBuffer(std::vector<Vertex::Vertex_struct> &vertices);
 
 	VkBuffer &getVertexBuffer() { return vertexBuffer; }
 	VkDeviceMemory &getVertexBufferMemory() { return vertexBufferMemory; }
 
 	uint32_t findMemoryType(uint32_t typeFilter,
-							VkMemoryPropertyFlags properties,
-							VkPhysicalDevice physicalDevice);
+							VkMemoryPropertyFlags properties);
 
 private:
+	VkDevice device;
+	VkPhysicalDevice physicalDevice;
+	VkCommandPool commandPool;
+	VkQueue graphicsQueue;
+
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
+
+	void createBuffer(VkDeviceSize size,
+					  VkBufferUsageFlags usage,
+					  VkMemoryPropertyFlags properties,
+					  VkBuffer &buffer,
+					  VkDeviceMemory &bufferMemory);
+
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 };
 }  // namespace vk

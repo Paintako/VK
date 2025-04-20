@@ -6,8 +6,7 @@ App::App() {
 	std::cout << "App constructor called" << std::endl;
 	initVulkan();
 
-	vertex.createVertexBuffer(vertices, device.getLogicalDevice(),
-							  device.getPhysicalDevice());
+	vertex.createVertexBuffer(vertices);
 }
 
 App::~App() {

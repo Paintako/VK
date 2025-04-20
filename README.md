@@ -326,6 +326,130 @@ Flow:
     * semaphore (for GPU sync)
     * fence (for C <--> G sync)
 
+## Vertex buffers
+`Shader`: codes that runs on GPU
+`Vertex shader`: Takes chunks of input points and figure out where they should appear on screen
+`Fragment shader`: Takes the output of vertex shader (varying) and colors the surface
+
+步驟:
+1. 準備 vertex data from CPU (not from hardcoded vertex shader), 設定:     
+    a. `VkVertexInputBindingDescription` **資料來源(從哪個 vertex buffer拿)**
+    b. `VkVertexInputAttributeDescription` **指定 shader 端的接收端 (in) 以及資料從哪個 binding 拿(from 1.)**
+2. create buffer, 設定:
+    a. create buffer object, 其中包含 buffer 屬性, size 等等
+    b. get memory, 設定 heap 屬性並且詢問 phyisical device 是否有指定屬性的 heap
+    c. 若有 --> map vertex buffer
+
+### Prepare vertex data
+```cpp
+struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+};
+```
+
+GLM conveniently provides us with C++ types that exactly match the vector types used in the shader language.
+```cpp
+const std::vector<Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+};
+```
+### Binding descriptions
+Vulkan 中的 binding:
+在 Vulkan 的 vertex input 階段，我們會提供一個或多個 vertex buffer（頂點緩衝區），而每個 buffer 對應一個 binding slot
+```cpp
+VkVertexInputBindingDescription bindingDescription{};
+bindingDescription.binding = 0; // binding index
+bindingDescription.stride = sizeof(Vertex); // 每個 vertex 的大小
+bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // 每個頂點取一次
+```
+* 我們要從 binding 0（也就是 vertex buffer 的第一個綁定點）讀資料
+* 每筆資料大小為 sizeof(Vertex)
+* 每個頂點讀一次資料（而不是 per-instance）
+
+因為一個 shader 可能需要從多個 vertex buffer 拿資料, e.g.,
+* binding 0: 頂點位置
+* binding 1: 法向量
+* binding 2: 顏色
+...
+這些可能來自不同的 buffer，就要指定對應的 binding index
+
+而每一個 binding 可以有多種不同的 `attribute`, 如 position, color, normal 都放在一個 struct 裡，對應同一個 buffer。
+每個 attribute 都要指定：
+* 哪個 binding（哪個 buffer）
+* shader 的 location（對應 layout(location = x)）
+* 資料格式（float2、float3）
+* 偏移量（offset from vertex start）
+
+對應到 shader
+```glsl
+layout(location = 0) in vec2 inPosition;
+layout(location = 1) in vec3 inColor;
+```
+
+相對應的 attribute description
+```cpp
+attributeDescriptions[0].location = 0; // 對應 inPosition
+attributeDescriptions[0].binding = 0;  // 從 binding 0 抓
+attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+attributeDescriptions[0].offset = offsetof(Vertex, pos);
+
+attributeDescriptions[1].location = 1; // 對應 inColor
+attributeDescriptions[1].binding = 0;  // 一樣從 binding 0 抓
+attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+attributeDescriptions[1].offset = offsetof(Vertex, color);
+```
+
+### Allcocate buffer & Mapping
+設定完如何拿 vertex from vector 後，接著該開始 create buffer 以及把 vector map 過去
+```cpp
+VkBufferCreateInfo bufferInfo{};
+bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+bufferInfo.size = sizeof(vertices[0]) * vertices.size();
+
+bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+```
+
+設定大小/usage/sharingMode 等等
+有了 buffer object 之後，要去設定這塊 buffer 的 memory
+```cpp
+VkMemoryRequirements memRequirements;
+vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
+```
+
+這會得到這塊 buffer object 的 memory 屬性(buffer or image) & size
+有了屬性之後去 query physicial device 有沒有我們要的 attribute
+```cpp
+VkMemoryAllocateInfo allocInfo{};
+allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+allocInfo.allocationSize = memRequirements.size;
+allocInfo.memoryTypeIndex =
+    findMemoryType(memRequirements.memoryTypeBits,
+                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                    physicalDevice);
+```
+
+這裡要 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT 以及 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT 的目的在於我們要把 CPU 端的 vector data 寫入 GPU memory
+VK_MEMORY_PROPERTY_HOST_COHERENT_BIT 的目的在於我們不需要額外做 flush 的操作 (driver 可能不會買上進行 copy 動作, COHERENT 就不用額外 handle, 沒這個屬性的 heap 就要手動 map)
+    * Call vkFlushMappedMemoryRanges after writing to the mapped memory
+    * Call vkInvalidateMappedMemoryRanges before reading from the mapped memory
+
+## Staging buffers
+使用 `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` 是為了從 host memcpy 過去給 GPU, 也就是可以:
+```cpp
+vkMapMemory(...)
+memcpy(...)
+vkUnmapMemory(...)
+```
+
+但這裡的 heap 對 GPU 來說並不見得是最快可 access 的 memory, 可以用 copyBuffer 的方式把 data 從 CPU visiable copy 到 GPU visiable only 的 heap 上
+
+
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)
 [Coordinates in shader](https://ithelp.ithome.com.tw/articles/10245073)
