@@ -27,13 +27,18 @@ public:
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::array<VkVertexInputAttributeDescription, 2>
 	getAttributeDescriptions();
+
 	void createVertexBuffer(std::vector<Vertex::Vertex_struct> &vertices);
+	void createIndexBuffer(std::vector<uint16_t> &indices);
 
 	VkBuffer &getVertexBuffer() { return vertexBuffer; }
+	VkBuffer &getIndexBuffer() { return indexBuffer; }
 	VkDeviceMemory &getVertexBufferMemory() { return vertexBufferMemory; }
 
 	uint32_t findMemoryType(uint32_t typeFilter,
 							VkMemoryPropertyFlags properties);
+
+	void cleanupBuffers();
 
 private:
 	VkDevice device;
@@ -43,6 +48,8 @@ private:
 
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
 
 	void createBuffer(VkDeviceSize size,
 					  VkBufferUsageFlags usage,

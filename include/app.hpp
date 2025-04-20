@@ -36,10 +36,8 @@ public:
 
 	bool framebufferResized = false;
 
-	std::vector<Vertex::Vertex_struct> vertices = {
-		{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-		{{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
+	std::vector<Vertex::Vertex_struct> vertices;  // For vertex buffer
+	std::vector<uint16_t> indices;				  // For index buffer
 
 private:
 	void initVulkan();

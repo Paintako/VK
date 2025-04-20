@@ -1,6 +1,6 @@
 # 指定編譯器
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Iinclude -g
+CXXFLAGS = -std=c++17 -O2 -Iinclude -g -fno-stack-protector
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
 # GLSL 編譯器
@@ -46,3 +46,8 @@ clean:
 # 格式化 C++ 程式碼
 format:
 	clang-format -i $(wildcard src/*.cpp) $(wildcard include/*.hpp) main.cpp
+
+# Valgrind 測試
+valgrind: $(TARGET)
+	valgrind --leak-check=full --track-origins=yes ./$(TARGET) > valgrind.log 2>&1
+	@echo "Valgrind log saved to valgrind.log"

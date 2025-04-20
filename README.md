@@ -449,6 +449,17 @@ vkUnmapMemory(...)
 
 但這裡的 heap 對 GPU 來說並不見得是最快可 access 的 memory, 可以用 copyBuffer 的方式把 data 從 CPU visiable copy 到 GPU visiable only 的 heap 上
 
+## Index buffer
+如果要畫一個三角形 --> 三個點
+一個正方形 --> 四個點
+
+但實際上，因為組成一個 primitive 的最小單位是三個點，所以其實正方形要用六個點 (兩個三角形)
+使用 index buffer 就可以重複使用某些點來組成各種形狀
+Index buffer: an array of pointers into the vertex buffer.
+
+步驟上同 vertex buffer creation, 使用 index buffer 要改動 `recordCommandBuffer`
+1. `vkCmdBindIndexBuffer`
+2. 改動 `vkCmdDraw` --> `vkCmdDrawIndexed`
 
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)

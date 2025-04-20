@@ -6,7 +6,15 @@ App::App() {
 	std::cout << "App constructor called" << std::endl;
 	initVulkan();
 
+	vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+				{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+				{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+				{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
+	indices = {0, 1, 2, 2, 3, 0};
+
 	vertex.createVertexBuffer(vertices);
+	vertex.createIndexBuffer(indices);
 }
 
 App::~App() {
@@ -88,7 +96,8 @@ void App::drawFrame() {
 		commandBuffers.getCommandBuffer(currentFrame),
 		renderPass.getRenderPass(), graphicsPipeline.getGraphicsPipeline(),
 		frameBuffer.getswapChainFrameBuffer()[imageIndex],
-		swapChain.getSwapChainExtent(), vertex.getVertexBuffer(), vertices);
+		swapChain.getSwapChainExtent(), vertex.getVertexBuffer(),
+		vertex.getIndexBuffer(), vertices, indices);
 
 	// Submit the command buffer to the graphics queue
 	VkSubmitInfo submitInfo{};
@@ -177,8 +186,9 @@ void App::cleanup() {
 
 	graphicsPipeline.cleanupGraphicsPipeline();
 	pipelineLayout.cleanupPipelineLayout();
-
 	renderPass.cleanupRenderPass();
+
+	vertex.cleanupBuffers();
 
 	sync_object.cleanupSyncObjects();
 

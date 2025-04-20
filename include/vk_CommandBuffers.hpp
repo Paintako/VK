@@ -25,7 +25,9 @@ public:
 							 VkFramebuffer &frameBuffer,
 							 VkExtent2D &swapChainExtent,
 							 VkBuffer &vertexBuffer,
-							 std::vector<Vertex::Vertex_struct> &vertices);
+							 VkBuffer &indexBuffer,
+							 std::vector<Vertex::Vertex_struct> &vertices,
+							 std::vector<uint16_t> &indices);
 
 	VkCommandBuffer &getCommandBuffer() { return commandBuffer; }
 	VkCommandPool &getCommandPool() { return commandPool; }
