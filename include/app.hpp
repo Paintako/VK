@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 
+#include "vk_Buffer.hpp"
 #include "vk_CommandBuffers.hpp"
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
@@ -62,8 +63,10 @@ private:
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
 	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
-	Vertex vertex{device.getLogicalDevice(), device.getPhysicalDevice(),
-				  commandBuffers.getCommandPool(), device.getGraphicsQueue()};
+	vk_Buffer buffer{device.getLogicalDevice(), device.getPhysicalDevice(),
+					 commandBuffers.getCommandPool(),
+					 device.getGraphicsQueue()};
+	Vertex vertex{buffer};
 	vk_Sync sync_object{device.getLogicalDevice(), MAX_FRAMES_IN_FLIGHT};
 
 	uint32_t currentFrame = 0;

@@ -6,17 +6,12 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include "vk_Buffer.hpp"
+
 namespace vk {
 class Vertex {
 public:
-	Vertex(VkDevice &device,
-		   VkPhysicalDevice &physicalDevice,
-		   VkCommandPool &commandPool,
-		   VkQueue &graphicsQueue)
-		: device(device),
-		  physicalDevice(physicalDevice),
-		  commandPool(commandPool),
-		  graphicsQueue(graphicsQueue) {}
+	Vertex(vk_Buffer &buffer) : buffer(buffer) {}
 	~Vertex() = default;
 
 	struct Vertex_struct {
@@ -41,22 +36,11 @@ public:
 	void cleanupBuffers();
 
 private:
-	VkDevice device;
-	VkPhysicalDevice physicalDevice;
-	VkCommandPool commandPool;
-	VkQueue graphicsQueue;
+	vk_Buffer &buffer;
 
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
-
-	void createBuffer(VkDeviceSize size,
-					  VkBufferUsageFlags usage,
-					  VkMemoryPropertyFlags properties,
-					  VkBuffer &buffer,
-					  VkDeviceMemory &bufferMemory);
-
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 };
 }  // namespace vk
