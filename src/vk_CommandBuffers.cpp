@@ -55,7 +55,9 @@ void vk_CommandBuffers::recordCommandBuffer(
 	VkBuffer &vertexBuffer,
 	VkBuffer &indexBuffer,
 	std::vector<Vertex::Vertex_struct> &vertices,
-	std::vector<uint16_t> &indices) {
+	std::vector<uint16_t> &indices,
+	VkPipelineLayout &pipelineLayout,
+	VkDescriptorSet &descriptorSet) {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = 0;				   // Optional
@@ -117,6 +119,12 @@ void vk_CommandBuffers::recordCommandBuffer(
 	// Draw the triangle
 	// vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0,
 	// 0);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+							pipelineLayout,	 // pipeline layout to bind
+							0,	// index of the first descriptor set
+							1,	// number of descriptor sets to bind
+							&descriptorSet, 0, nullptr);
+
 	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0,
 					 0, 0);
 

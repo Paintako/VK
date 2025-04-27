@@ -5,7 +5,8 @@
 namespace vk {
 class vk_PipelineLayout {
 public:
-	vk_PipelineLayout(VkDevice &device);
+	vk_PipelineLayout(VkDevice &device,
+					  VkDescriptorSetLayout &descriptorSetLayout);
 	~vk_PipelineLayout() = default;
 
 	void cleanupPipelineLayout();
@@ -13,6 +14,7 @@ public:
 
 private:
 	VkDevice &device;
+	VkDescriptorSetLayout &descriptorSetLayout;
 	VkPipelineLayout pipelineLayout;
 
 	void createPipelineLayout();

@@ -15,6 +15,10 @@ App::App() {
 
 	vertex.createVertexBuffer(vertices);
 	vertex.createIndexBuffer(indices);
+
+	uniformBuffer.createUniformBuffers(MAX_FRAMES_IN_FLIGHT);
+	descriptor.createDescriptorSets(uniformBuffer.getUniformBuffers(),
+									uniformBuffer.getDescriptorSetLayout());
 }
 
 App::~App() {
@@ -62,6 +66,10 @@ void App::mainLoop() {
 }
 
 void App::drawFrame() {
+	// Update the uniform buffer
+	uniformBuffer.updateUniformBuffer(currentFrame,
+									  swapChain.getSwapChainExtent());
+
 	// Wait for the fence to be signaled, which indicates that the GPU has
 	// finished rendering the previous frame
 	vkWaitForFences(device.getLogicalDevice(), 1,
@@ -97,7 +105,9 @@ void App::drawFrame() {
 		renderPass.getRenderPass(), graphicsPipeline.getGraphicsPipeline(),
 		frameBuffer.getswapChainFrameBuffer()[imageIndex],
 		swapChain.getSwapChainExtent(), vertex.getVertexBuffer(),
-		vertex.getIndexBuffer(), vertices, indices);
+		vertex.getIndexBuffer(), vertices, indices,
+		pipelineLayout.getPipelineLayout(),
+		descriptor.getDescriptorSets()[currentFrame]);
 
 	// Submit the command buffer to the graphics queue
 	VkSubmitInfo submitInfo{};
@@ -188,7 +198,11 @@ void App::cleanup() {
 	pipelineLayout.cleanupPipelineLayout();
 	renderPass.cleanupRenderPass();
 
+	uniformBuffer.cleanupBuffers();
 	vertex.cleanupBuffers();
+
+	descriptor.cleanupDescriptorPool();
+	uniformBuffer.cleanupDescriptorSetLayout();
 
 	sync_object.cleanupSyncObjects();
 

@@ -27,7 +27,9 @@ public:
 							 VkBuffer &vertexBuffer,
 							 VkBuffer &indexBuffer,
 							 std::vector<Vertex::Vertex_struct> &vertices,
-							 std::vector<uint16_t> &indices);
+							 std::vector<uint16_t> &indices,
+							 VkPipelineLayout &pipelineLayout,
+							 VkDescriptorSet &descriptorSet);
 
 	VkCommandBuffer &getCommandBuffer() { return commandBuffer; }
 	VkCommandPool &getCommandPool() { return commandPool; }

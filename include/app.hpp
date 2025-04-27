@@ -9,6 +9,7 @@
 
 #include "vk_Buffer.hpp"
 #include "vk_CommandBuffers.hpp"
+#include "vk_Descriptor.hpp"
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
 #include "vk_GraphicsPipeline.hpp"
@@ -17,6 +18,7 @@
 #include "vk_RenderPass.hpp"
 #include "vk_SwapChain.hpp"
 #include "vk_Sync.hpp"
+#include "vk_UniformBuffer.hpp"
 #include "vk_Vertex.hpp"
 #include "window.hpp"
 
@@ -53,8 +55,15 @@ private:
 	Window window;
 	vk_Instance instance{window};
 	vk_Device device{instance.getInstance(), instance.getSurface()};
+	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
+	vk_Buffer buffer{device.getLogicalDevice(), device.getPhysicalDevice(),
+					 commandBuffers.getCommandPool(),
+					 device.getGraphicsQueue()};
+	vk_Descriptor descriptor{MAX_FRAMES_IN_FLIGHT, device.getLogicalDevice()};
+	vk_UniformBuffer uniformBuffer{buffer};
 	vk_SwapChain swapChain{device, instance};
-	vk_PipelineLayout pipelineLayout{device.getLogicalDevice()};
+	vk_PipelineLayout pipelineLayout{device.getLogicalDevice(),
+									 uniformBuffer.getDescriptorSetLayout()};
 	vk_RenderPass renderPass{device.getLogicalDevice(),
 							 swapChain.getSwapChainImageFormat()};
 	vk_GraphicsPipeline graphicsPipeline{device.getLogicalDevice(),
@@ -62,10 +71,6 @@ private:
 										 pipelineLayout.getPipelineLayout()};
 	vk_FrameBuffer frameBuffer{device.getLogicalDevice(),
 							   renderPass.getRenderPass(), swapChain};
-	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
-	vk_Buffer buffer{device.getLogicalDevice(), device.getPhysicalDevice(),
-					 commandBuffers.getCommandPool(),
-					 device.getGraphicsQueue()};
 	Vertex vertex{buffer};
 	vk_Sync sync_object{device.getLogicalDevice(), MAX_FRAMES_IN_FLIGHT};
 
