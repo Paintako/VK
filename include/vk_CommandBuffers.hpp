@@ -37,6 +37,9 @@ public:
 		return commandBuffers[index];
 	}
 
+	VkCommandBuffer beginSingleTimeCommands();
+	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+
 	void cleanupCommandPool();
 
 private:

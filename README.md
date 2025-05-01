@@ -461,6 +461,106 @@ Index buffer: an array of pointers into the vertex buffer.
 1. `vkCmdBindIndexBuffer`
 2. 改動 `vkCmdDraw` --> `vkCmdDrawIndexed`
 
+## Layout transition
+Vulkan 中主要使用 `barrier` 來同步資源，因此你必須明確指定哪些操作（涉及該資源）必須在 barrier 之前完成，以及哪些操作必須等待 barrier 完成後才能開始。
+正確的參數取決於圖像的 舊佈局與新佈局，我們會在確定要使用哪些佈局轉換後，再回來設定這些值。 
+
+`barrier` 分成兩種: execution barrier / Memory barrier
+`barrier` 的任務:
+1. 轉換 resource 的狀態
+2. 建立 memory visibility 順序（memory dependencies）
+
+```cpp
+void vkCmdPipelineBarrier(
+   VkCommandBuffer                             commandBuffer,
+   VkPipelineStageFlags                        srcStageMask,
+   VkPipelineStageFlags                        dstStageMask,
+   VkDependencyFlags                           dependencyFlags,
+   uint32_t                                    memoryBarrierCount,
+   const VkMemoryBarrier*                      pMemoryBarriers,
+   uint32_t                                    bufferMemoryBarrierCount,
+   const VkBufferMemoryBarrier*                pBufferMemoryBarriers,
+   uint32_t                                    imageMemoryBarrierCount,
+   const VkImageMemoryBarrier*                 pImageMemoryBarriers);
+```
+
+`srcStageMask`: which pipeline stage the operations occur that should happen before the barrier. (該指令在做到某個 pipeline stage 前，dst stage 會卡住)
+`dstStageMask`: pipeline stage in which operations will wait on the barrier (該指令在 pipeline 某個 stage 需要等到 src 做完才能往下做)
+
+Mask 的意義在於: 是用來指定某個資源（image 或 buffer）被讀/寫的方式，描述 GPU 該怎麼用這個資源
+
+src 是「要等誰」，dst 是「誰在等」
+srcAccess + sourceStage 是「上面發生什麼」
+dstAccess + destinationStage 是「下面打算做什麼」
+
+```cpp
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+} else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+} else {
+    throw std::invalid_argument("unsupported layout transition!");
+}
+
+vkCmdPipelineBarrier(
+    commandBuffer,
+    sourceStage, destinationStage,
+    0,
+    0, nullptr,
+    0, nullptr,
+    1, &barrier
+);
+```
+
+這三條指令理論上會平行處理 (On GPU), 但根據 spec 說法:
+When vkCmdPipelineBarrier is submitted to a queue, it defines a memory dependency between commands that were **submitted to the same queue before it, and those submitted to the same queue after it.**
+
+也就是說，執行順序會像是:
+
+A
+B
+C ---- submit
+transitionImageLayout ---- submit
+copy ---- submit
+transitionImageLayout ---- submit
+D
+E
+F ---- submit
+
+在沒有 barrier 的情況，以上指令都會是 OOO
+但有 barrier 就會變成 ABC OOO, transitionImageLayout, copy, transitionImageLayout, DEF OOO
+
+```cpp
+barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+```
+
+`srcStageMask` 告訴 Vulkan：要等哪個 pipeline 階段裡的**事情完成**後，才能進行同步 (是「等待的點」。)
+`srcAccessMask` 告訴 Vulkan：等哪些「memory operation」完成（例如 shader write、transfer write 等）才算完成這個階段的事。 (是「等待的條件」。)
+`dstStageMask` 告訴 Vulkan：下一個 pipeline 要在哪個階段才能繼續往下走。(是「解鎖的點」。)
+`dstAccessMask` 告訴 Vulkan：要等資料「對這些存取類型」變成可見，這個階段才可以開始做事。(是「解鎖的條件」。)
+
+Vulkan 在這段邏輯下會要求 Fragment shader 要開始讀資料前 (VK_ACCESS_SHADER_READ_BIT in VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)，必須確保 transfer stage 裡的所有 transfer write（VK_ACCESS_TRANSFER_WRITE_BIT）都已完成，並且 memory 可見。
+
+所以只有指定 stageMask 不夠，要跟 Vulkan 講等待的條件以及解鎖的條件
+srcStage + srcAccessMask 決定「什麼時候完成」，
+dstStage + dstAccessMask 決定「什麼時候可以開始」，
+Vulkan 會在兩者中加上一道牆，阻擋 Pipeline 2 直到 Pipeline 1 符合條件為止。
+
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)
 [Coordinates in shader](https://ithelp.ithome.com.tw/articles/10245073)

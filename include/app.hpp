@@ -13,6 +13,7 @@
 #include "vk_Device.hpp"
 #include "vk_FrameBuffer.hpp"
 #include "vk_GraphicsPipeline.hpp"
+#include "vk_Image.hpp"
 #include "vk_Instance.hpp"
 #include "vk_PipelineLayout.hpp"
 #include "vk_RenderPass.hpp"
@@ -58,6 +59,7 @@ private:
 	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
 	vk_Buffer buffer{device.getLogicalDevice(), device.getPhysicalDevice(),
 					 commandBuffers, device.getGraphicsQueue()};
+	vk_Image image{buffer, commandBuffers};
 	vk_Descriptor descriptor{MAX_FRAMES_IN_FLIGHT, device.getLogicalDevice()};
 	vk_UniformBuffer uniformBuffer{buffer};
 	vk_SwapChain swapChain{device, instance};
