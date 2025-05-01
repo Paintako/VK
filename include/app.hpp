@@ -57,8 +57,7 @@ private:
 	vk_Device device{instance.getInstance(), instance.getSurface()};
 	vk_CommandBuffers commandBuffers{device, MAX_FRAMES_IN_FLIGHT};
 	vk_Buffer buffer{device.getLogicalDevice(), device.getPhysicalDevice(),
-					 commandBuffers.getCommandPool(),
-					 device.getGraphicsQueue()};
+					 commandBuffers, device.getGraphicsQueue()};
 	vk_Descriptor descriptor{MAX_FRAMES_IN_FLIGHT, device.getLogicalDevice()};
 	vk_UniformBuffer uniformBuffer{buffer};
 	vk_SwapChain swapChain{device, instance};

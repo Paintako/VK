@@ -6,12 +6,14 @@
 namespace vk {
 vk_Buffer::vk_Buffer(VkDevice &device,
 					 VkPhysicalDevice &physicalDevice,
-					 VkCommandPool &commandPool,
+					 vk_CommandBuffers &vk_commandBuffers,
 					 VkQueue &graphicsQueue)
 	: device(device),
 	  physicalDevice(physicalDevice),
-	  commandPool(commandPool),
-	  graphicsQueue(graphicsQueue) {}
+	  vk_commandBuffers(vk_commandBuffers),
+	  graphicsQueue(graphicsQueue) {
+	commandPool = vk_commandBuffers.getCommandPool();
+}
 
 void vk_Buffer::createBuffer(VkDeviceSize size,
 							 VkBufferUsageFlags usage,

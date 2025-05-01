@@ -6,9 +6,9 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
-#include "vk_Buffer.hpp"
-
 namespace vk {
+// Forward declaration of vk_Buffer class
+class vk_Buffer;
 class Vertex {
 public:
 	Vertex(vk_Buffer &buffer) : buffer(buffer) {}
