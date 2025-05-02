@@ -561,7 +561,33 @@ srcStage + srcAccessMask 決定「什麼時候完成」，
 dstStage + dstAccessMask 決定「什麼時候可以開始」，
 Vulkan 會在兩者中加上一道牆，阻擋 Pipeline 2 直到 Pipeline 1 符合條件為止。
 
+## Sampler
+Texture 通常是用 sampler 來 access, sampler 會套用過濾(filtering) 以及轉換 (transformation) 以計算出最終顏色
+
+### Filter
+Sampler 可以解決像是 oversampling 的問題
+舉例: 如果一個 texture 要 mapped 到一個 geometry (e.g., 三角形), 並且該 gemotry 的 fragment 比這個 texels 還要多(e.g., 100 fragments 10 texels)，這樣會使得很多 fragment 用到重複的 texels 導致畫面模糊
+
+這時透過 sampler, 利用取 4 個最近的 texels 進行線性插值就可以得到一個相對 smooth 的效果
+
+```cpp
+samplerInfo.magFilter = VK_FILTER_LINEAR;
+samplerInfo.minFilter = VK_FILTER_LINEAR;
+samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+```
+
+`magFilter`: 放大，處理 oversampling (i.e., texels << fragments)
+`minFilter`: 縮小，處理 undersampling (i.e., texels >> fragments)，如果 texels 比 fragments 還多，那就可能產生閃爍（aliasing）」或紋理跳動。
+
+`addressModeU/V/W`: UVW 是 texture 的 coordinate, 每個點對應到 texture 圖上的一個點，當紋理座標超出 [0, 1] 的範圍時，會依照你設定的 addressMode 來處理
+
+#### Anisotropic Filtering
+AF（各向異性過濾）是為了解決紋理在斜角觀看時模糊的問題，使遠距離貼圖依然清晰，尤其在地面或牆面材質上效果顯著
+
 ## Reference
 [Render doc: Vulkan in 30 minutes](https://renderdoc.org/vulkan-in-30-minutes.html)
 [Coordinates in shader](https://ithelp.ithome.com.tw/articles/10245073)
 [homogeneous coorindates](https://flyhead.medium.com/%E7%82%BA%E4%BB%80%E9%BA%BC%E9%9C%80%E8%A6%81%E9%BD%8A%E6%AC%A1%E5%BA%A7%E6%A8%99-homogeneous-coordinate-bd86356f67b1)
+[Anisotropic filtering](https://zh.wikipedia.org/zh-tw/%E5%90%84%E5%90%91%E5%BC%82%E6%80%A7%E8%BF%87%E6%BB%A4)

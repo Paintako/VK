@@ -161,6 +161,8 @@ void vk_Device::createLogicalDevice() {
 	VkDeviceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
+
 	createInfo.queueCreateInfoCount =
 		static_cast<uint32_t>(queueCreateInfos.size());
 	createInfo.pQueueCreateInfos = queueCreateInfos.data();

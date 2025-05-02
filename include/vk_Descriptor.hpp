@@ -11,7 +11,9 @@ public:
 	vk_Descriptor(uint32_t maxFramesInFlight, VkDevice &device);
 	void createDescriptorPool();
 	void createDescriptorSets(std::vector<VkBuffer> &uniformBuffers,
-							  VkDescriptorSetLayout &descriptorSetLayout);
+							  VkDescriptorSetLayout &descriptorSetLayout,
+							  VkImageView &textureImageView,
+							  VkSampler &textureSampler);
 
 	std::vector<VkDescriptorSet> &getDescriptorSets() { return descriptorSets; }
 

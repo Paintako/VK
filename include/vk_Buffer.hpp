@@ -25,6 +25,7 @@ public:
 							VkMemoryPropertyFlags properties);
 
 	VkDevice &getDevice() { return device; }
+	VkPhysicalDevice &getPhysicalDevice() { return physicalDevice; }
 
 private:
 	vk_CommandBuffers &vk_commandBuffers;

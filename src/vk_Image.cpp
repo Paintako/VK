@@ -8,8 +8,15 @@
 namespace vk {
 vk_Image::vk_Image(vk_Buffer &buffer, vk_CommandBuffers &commandBuffers)
 	: buffer(buffer), commandBuffers(commandBuffers) {
-	// Create staging buffer
+	// Create Texture image
 	createTextureImage();
+	// Create image view
+	createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB,
+					VK_IMAGE_ASPECT_COLOR_BIT, textureImageView);
+	// Create image sampler
+	createImageSampler(textureSampler, VK_FILTER_LINEAR, VK_FILTER_LINEAR,
+					   VK_SAMPLER_ADDRESS_MODE_REPEAT);
+	std::cout << "Texture image view created!" << std::endl;
 }
 
 void vk_Image::createTextureImage() {
@@ -177,7 +184,69 @@ void vk_Image::transitionImageLayout(VkImage image,
 	commandBuffers.endSingleTimeCommands(commandBuffer);
 }
 
+void vk_Image::createImageView(VkImage image,
+							   VkFormat format,
+							   VkImageAspectFlags aspectFlags,
+							   VkImageView &imageView) {
+	VkImageViewCreateInfo viewInfo{};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	if (vkCreateImageView(buffer.getDevice(), &viewInfo, nullptr, &imageView) !=
+		VK_SUCCESS) {
+		throw std::runtime_error("failed to create texture image view!");
+	}
+}
+
+void vk_Image::createImageSampler(VkSampler &sampler,
+								  VkFilter magFilter,
+								  VkFilter minFilter,
+								  VkSamplerAddressMode addressMode) {
+	VkSamplerCreateInfo samplerInfo{};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = magFilter;
+	samplerInfo.minFilter = minFilter;
+
+	samplerInfo.addressModeU = addressMode;
+
+	// Config for Anisotropic filtering(AF)
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	VkPhysicalDeviceProperties properties{};
+	vkGetPhysicalDeviceProperties(buffer.getPhysicalDevice(), &properties);
+	samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+
+	// If sampler samples a point outside the image, it will be
+	// clamped(限制在某個範圍內) to the edge if we set it to
+	// VK_BORDER_COLOR_INT_OPAQUE_BLACK, the color will be black when sampled
+	// outside the image
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+	// Should always be set to VK_FALSE, because we don't want to use
+	// unnormalized coordinates
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	if (vkCreateSampler(buffer.getDevice(), &samplerInfo, nullptr, &sampler) !=
+		VK_SUCCESS) {
+		throw std::runtime_error("failed to create texture sampler!");
+	}
+}
+
 void vk_Image::cleanup() {
+	vkDestroySampler(buffer.getDevice(), textureSampler, nullptr);
+	vkDestroyImageView(buffer.getDevice(), textureImageView, nullptr);
 	vkDestroyImage(buffer.getDevice(), textureImage, nullptr);
 	vkFreeMemory(buffer.getDevice(), textureImageMemory, nullptr);
 }

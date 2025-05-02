@@ -17,10 +17,12 @@ public:
 	struct Vertex_struct {
 		glm::vec2 pos;
 		glm::vec3 color;
+		glm::vec2 texCoord;	 // determine how the image is actually mapped to
+							 // the geometry
 	};
 
 	static VkVertexInputBindingDescription getBindingDescription();
-	static std::array<VkVertexInputAttributeDescription, 2>
+	static std::array<VkVertexInputAttributeDescription, 3>
 	getAttributeDescriptions();
 
 	void createVertexBuffer(std::vector<Vertex::Vertex_struct> &vertices);

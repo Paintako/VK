@@ -6,10 +6,10 @@ App::App() {
 	std::cout << "App constructor called" << std::endl;
 	initVulkan();
 
-	vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-				{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-				{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-				{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+	vertices = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+				{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+				{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+				{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
 
 	indices = {0, 1, 2, 2, 3, 0};
 
@@ -18,7 +18,9 @@ App::App() {
 
 	uniformBuffer.createUniformBuffers(MAX_FRAMES_IN_FLIGHT);
 	descriptor.createDescriptorSets(uniformBuffer.getUniformBuffers(),
-									uniformBuffer.getDescriptorSetLayout());
+									uniformBuffer.getDescriptorSetLayout(),
+									image.getTextureImageView(),
+									image.getTextureSampler());
 }
 
 App::~App() {
@@ -54,6 +56,7 @@ void App::initVulkan() {
 	glfwSetFramebufferSizeCallback(window.getWindow(),
 								   framebufferResizeCallback);
 }
+
 void App::mainLoop() {
 	// Main loop code
 	while (!glfwWindowShouldClose(window.getWindow())) {
@@ -200,6 +203,8 @@ void App::cleanup() {
 
 	uniformBuffer.cleanupBuffers();
 	vertex.cleanupBuffers();
+
+	image.cleanup();
 
 	descriptor.cleanupDescriptorPool();
 	uniformBuffer.cleanupDescriptorSetLayout();

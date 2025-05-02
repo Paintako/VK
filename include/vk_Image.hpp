@@ -18,6 +18,14 @@ public:
 					 VkMemoryPropertyFlags properties,
 					 VkImage &image,
 					 VkDeviceMemory &imageMemory);
+	void createImageView(VkImage image,
+						 VkFormat format,
+						 VkImageAspectFlags aspectFlags,
+						 VkImageView &imageView);
+	void createImageSampler(VkSampler &sampler,
+							VkFilter magFilter,
+							VkFilter minFilter,
+							VkSamplerAddressMode addressMode);
 	void copyBufferToImage(VkBuffer buffer,
 						   VkImage image,
 						   uint32_t width,
@@ -26,6 +34,9 @@ public:
 							   VkFormat format,
 							   VkImageLayout oldLayout,
 							   VkImageLayout newLayout);
+
+	VkImageView &getTextureImageView() { return textureImageView; }
+	VkSampler &getTextureSampler() { return textureSampler; }
 
 	void cleanup();
 
@@ -38,5 +49,7 @@ private:
 
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
+	VkImageView textureImageView;
+	VkSampler textureSampler;
 };
 }  // namespace vk
