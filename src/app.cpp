@@ -1,5 +1,7 @@
 #include "app.hpp"
 
+#include <chrono>
+
 namespace vk {
 App::App() {
 	// Constructor implementation
@@ -69,6 +71,10 @@ void App::mainLoop() {
 }
 
 void App::drawFrame() {
+	// Calculate fps
+	static auto start_time = std::chrono::high_resolution_clock::now();
+	static uint16_t frame_count = 0;  // up to 65535 frames per second
+
 	// Update the uniform buffer
 	uniformBuffer.updateUniformBuffer(currentFrame,
 									  swapChain.getSwapChainExtent());
@@ -168,6 +174,16 @@ void App::drawFrame() {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
 	currentFrame = (currentFrame + 1) % max_frames_in_flight;
+
+	// Calculate fps
+	frame_count++;
+	auto end_time = std::chrono::high_resolution_clock::now();
+	if (std::chrono::duration_cast<std::chrono::seconds>(end_time - start_time)
+			.count() >= 1) {
+		std::cout << "FPS: " << frame_count << std::endl;
+		frame_count = 0;
+		start_time = end_time;
+	}
 }
 
 void App::recreateSwapChain() {
